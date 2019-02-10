@@ -30,3 +30,13 @@ All actions are logged into a logfile.
 To disable logfile writing entirely specify "-l null".
 
 All ADI-log-records rejected by QRZ-server are stored into a file that is named "YYYMMDD_HHmmfailed_records.adi", where YYYYMMDD_HHmm is the current date and time.
+
+## Example
+
+In my case the script resides directly in the WSJT-X directory and is executed by following crontab entry:
+```
+pi@raspberrypi:~ $ crontab -l
+
+*/10 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
+pi@raspberrypi:~ $ 
+```
