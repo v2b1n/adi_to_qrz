@@ -120,7 +120,9 @@ def main():
 
     # AND write a file
     if logfile != "null":
-        logging.getLogger().addHandler(logging.FileHandler(logfile))
+        fhandler = logging.FileHandler(logfile)
+        fhandler.setFormatter(formatter)
+        logging.getLogger().addHandler(fhandler)
     
     with open(inputfile) as f:
         lines = [line.rstrip('\n') for line in open(inputfile)]
