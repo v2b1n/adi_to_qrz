@@ -126,8 +126,8 @@ def main():
         lines = [line.rstrip('\n') for line in open(inputfile)]
 
     if len(lines) < 1:
-        logger.error("The source file " + inputfile + " is empty")
-        exit(1)
+        logger.info("The source file " + inputfile + " is empty; doing nothing")
+        exit(0)
 
     # per record - add 
     for line in lines:
