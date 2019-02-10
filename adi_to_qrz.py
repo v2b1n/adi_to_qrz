@@ -127,7 +127,7 @@ def main():
     with open(inputfile) as f:
         lines = [line.rstrip('\n') for line in open(inputfile)]
 
-    if len(lines) < 1:
+    if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
         logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
 
@@ -149,6 +149,7 @@ def main():
     if delete == True:
         logger.info("Emptying the source file " + inputfile)
         f = open(inputfile, "w")
+        f.write("ADIF Export<eoh>")
         f.close()
 
     
