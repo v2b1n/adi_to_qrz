@@ -2,7 +2,7 @@
 
 # Author: Vladimir Vecgailis <vladimir@vovka.de>, DO2VV
 # https://www.vovka.de/v2b1n/adi_to_qrz/
-# 
+#
 # This program is distributed under terms of GPL.
 #
 # v0.1
@@ -67,7 +67,7 @@ def add_record(record):
 
                     logger.error("Insert of QSO with " + id +" failed(Server response was:\"" + reason +"\")")
                     logger.error("Failed record: " + record )
-            
+
     except:
         logger.error("Could not connect to "+ url)
         exit(1)
@@ -123,7 +123,7 @@ def main():
         fhandler = logging.FileHandler(logfile)
         fhandler.setFormatter(formatter)
         logging.getLogger().addHandler(fhandler)
-    
+
     with open(inputfile) as f:
         lines = [line.rstrip('\n') for line in open(inputfile)]
 
@@ -131,7 +131,7 @@ def main():
         logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
 
-    # per record - add 
+    # per record - add
     for line in lines:
         if line.startswith("<call") or line.startswith("<CALL"):
             add_record(line)
@@ -152,7 +152,7 @@ def main():
         f.write("ADIF Export<eoh>")
         f.close()
 
-    
+
 
 ########################################
 
