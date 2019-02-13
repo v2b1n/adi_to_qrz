@@ -5,7 +5,7 @@
 #
 # This program is distributed under terms of GPL.
 #
-# v0.1
+# v0.2
 
 import io
 import logging
@@ -39,22 +39,38 @@ def add_record(record):
     global apikey
     global apiurl
     payload = {'KEY': apikey, 'ACTION': 'INSERT', 'ADIF': record }
+    call = ""
+
+    # Find CALL in record and set it for later use
+    for x in record.split('<'):
+        if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
+            next
+        else:
+            key = x.split(':')[0].lower()
+            value = x.split(':')[1].split('>')[1]
+            if key == "call":
+                call = value.strip()
+
     try:
         r = requests.post(apiurl, data = payload)
+    except Exception as c:
+        logger.error("Could not connect to "+ apiurl)
+        exit(1)
+    else:
         if ( r.status_code == 200 ):
             params = dict(x.split('=') for x in r.text.split('&'))
 
-            id = (record.split(" ")[0]).split(">")[1]
+
             if 'RESULT' in params:
                 if params['RESULT'] == "OK":
-                    logger.info("QSO record with "+ id +" added")
+                    logger.info("QSO record with "+ call +" added")
                 else:
                     failed_records.append(record)
                     if 'REASON' in params:
                         reason = params['REASON']
                     else:
                         reason = "No failure reasons provided by server"
-                    logger.error("Insert of QSO with " + id +" failed(Server response was: \"" + reason +"\")")
+                    logger.error("Insert of QSO with " + call +" failed(Server response was: \"" + reason +"\")")
                     logger.error("Failed record: " + record )
 
             if 'STATUS' in params:
@@ -65,20 +81,20 @@ def add_record(record):
                     else:
                         reason = "No failure reasons provided by server"
 
-                    logger.error("Insert of QSO with " + id +" failed(Server response was:\"" + reason +"\")")
+                    logger.error("Insert of QSO with " + call +" failed(Server response was:\"" + reason +"\")")
                     logger.error("Failed record: " + record )
+        else:
+            logger.error("The server responded with http-code " + str(r.status_code) + " upon submission of QSO with " + call)
+            exit(1)
 
-    except:
-        logger.error("Could not connect to "+ url)
-        exit(1)
 
 def print_help():
-    print "Usage: " + os.path.basename(__file__) + " [options]"
-    print " -h  --help      print this usage and exit"
-    print " -a  --apikey    setting apikey for api-connection"
-    print " -i  --inputfile setting inputfile, default: wsjtx_log.adi"
-    print " -l  --logfile   setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log"
-    print " -d  --delete    empty the inputfile after import, default: no"
+    print("Usage: " + os.path.basename(__file__) + " [options]")
+    print(" -h  --help      print this usage and exit")
+    print(" -a  --apikey    setting apikey for api-connection")
+    print(" -i  --inputfile setting inputfile, default: wsjtx_log.adi")
+    print(" -l  --logfile   setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
+    print(" -d  --delete    empty the inputfile after import, default: no")
     exit(0)
 
 def main():
@@ -97,16 +113,16 @@ def main():
 
     # check opts
     for opt, arg in options:
-	if opt in ('-l', '--logfile'):
-	    logfile = arg
-	elif opt in ('-a', '--apikey'):
-	    apikey = arg
-	elif opt in ('-d', '--delete'):
-	    delete = True
-	elif opt in ('-h', '--help'):
-	    print_help()
-	elif opt in ('-i', '--inputfile'):
-	    inputfile = arg
+        if opt in ('-l', '--logfile'):
+            logfile = arg
+        elif opt in ('-a', '--apikey'):
+            apikey = arg
+        elif opt in ('-d', '--delete'):
+            delete = True
+        elif opt in ('-h', '--help'):
+            print_help()
+        elif opt in ('-i', '--inputfile'):
+            inputfile = arg
 
     # now check whether everything needed is given - at least apikey & inputfile
     # must be present
@@ -158,7 +174,7 @@ def main():
                 logger.info("Emptying the source file " + inputfile)
                 try:
                     f = open(inputfile, "w")
-                    f.write("ADIF Export<eoh>")
+                    f.write("ADIF Export<eoh>\n")
                     f.close()
                 except Exception as e2:
                     logger.error("Could not empty " + inputfile)
