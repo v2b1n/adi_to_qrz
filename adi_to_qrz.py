@@ -54,7 +54,7 @@ def add_record(record):
                         reason = params['REASON']
                     else:
                         reason = "No failure reasons provided by server"
-                    logger.error("Insert of QSO with " + id +" failed(Server response was:\"" + reason +"\")")
+                    logger.error("Insert of QSO with " + id +" failed(Server response was: \"" + reason +"\")")
                     logger.error("Failed record: " + record )
 
             if 'STATUS' in params:
@@ -133,7 +133,7 @@ def main():
 
     # per record - add
     for line in lines:
-        if line.startswith("<call") or line.startswith("<CALL"):
+        if line.endswith("<EOR>") or line.endswith("<eor>"):
             add_record(line)
 
     # now, if there are any failed records - write them into a separate file
