@@ -1,0 +1,14 @@
+## v0.3
+
+* the "idle" message, thus message when an empty log is procesed, is now not written into logfile by default. This prevents the log to grow only because of these, not really interesting, log records. The new switch "-e" allows, however, to re-enable it, so on every run you can see whether the script was actually executed or not.
+
+## v0.2
+
+* ensured python3 compatibility
+* corrected connection error handling
+* corrected remote call display in logs
+
+
+## v0.1
+
+* initial release
