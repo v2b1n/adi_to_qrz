@@ -34,6 +34,7 @@ logfile = os.path.basename(__file__).split(".")[0] + ".log"
 inputfile = "wsjtx_log.adi"
 failed_records = []
 delete = False
+idle_log = False
 
 def add_record(record):
     global apikey
@@ -90,11 +91,12 @@ def add_record(record):
 
 def print_help():
     print("Usage: " + os.path.basename(__file__) + " [options]")
-    print(" -h  --help      print this usage and exit")
-    print(" -a  --apikey    setting apikey for api-connection")
-    print(" -i  --inputfile setting inputfile, default: wsjtx_log.adi")
-    print(" -l  --logfile   setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
-    print(" -d  --delete    empty the inputfile after import, default: no")
+    print(" -h  --help              print this usage and exit")
+    print(" -a  --apikey            setting apikey for api-connection")
+    print(" -i  --inputfile         setting inputfile, default: wsjtx_log.adi")
+    print(" -e  --enable-idle-log   log even if the log is empty")
+    print(" -l  --logfile           setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
+    print(" -d  --delete            empty the inputfile after import, default: no")
     exit(0)
 
 def main():
@@ -108,8 +110,8 @@ def main():
 
     # grab opts
     options, remainder = getopt.gnu_getopt(sys.argv[1:],
-        'l:a:hdi:',
-        ['logfile=', 'apikey=', 'help', 'delete', 'inputfile=', ])
+        'l:a:hedi:',
+        ['logfile=', 'apikey=', 'help', 'idle_log','delete', 'inputfile=', ])
 
     # check opts
     for opt, arg in options:
@@ -119,6 +121,8 @@ def main():
             apikey = arg
         elif opt in ('-d', '--delete'):
             delete = True
+        elif opt in ('-e', '--enable-idle-log'):
+            idle_log = True
         elif opt in ('-h', '--help'):
             print_help()
         elif opt in ('-i', '--inputfile'):
@@ -142,16 +146,34 @@ def main():
 
     with open(inputfile) as f:
         lines = [line.rstrip('\n') for line in open(inputfile)]
+    print("marker #1")
 
+    print("Lines: ",len(lines))
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
-        logger.info("The source file " + inputfile + " is empty; doing nothing")
+        print("marker #2")
+        if idle_log == True:
+            print("Case 0")
+            logger.info("The source file " + inputfile + " is empty; doing nothing")
+        else:
+            #logger.handlers = []
+            #
+            #logger = logging.getLogger()
+            #formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+            #handler = logging.StreamHandler()
+            #handler.setFormatter(formatter)
+            #logger.addHandler(handler)
+            print("Case 1")
+            logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
+    print("marker #3")
 
     # per record - add
     for line in lines:
+        print("marker #4")
         if line.endswith("<EOR>") or line.endswith("<eor>"):
             add_record(line)
 
+    print("marker #5")
     # now, if there are any failed records - write them into a separate file
     if len(failed_records) > 0:
         failed_records_file = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_failed_records.adi"
