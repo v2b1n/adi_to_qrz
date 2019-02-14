@@ -47,7 +47,7 @@ def add_record(record):
             next
         else:
             key = x.split(':')[0].lower()
-            value = x.split(':')[1].split('>')[1]
+            value = x.split('>')[1]
             if key == "call":
                 call = value.strip()
 
