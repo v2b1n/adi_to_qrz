@@ -5,7 +5,7 @@
 #
 # This program is distributed under terms of GPL.
 #
-# v0.2
+# v0.3
 
 import io
 import logging
@@ -22,9 +22,9 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 logger = logging.getLogger()
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+stdout_handler = logging.StreamHandler()
+stdout_handler.setFormatter(formatter)
+logger.addHandler(stdout_handler)
 logger.setLevel(logging.DEBUG)
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -94,7 +94,7 @@ def print_help():
     print(" -h  --help              print this usage and exit")
     print(" -a  --apikey            setting apikey for api-connection")
     print(" -i  --inputfile         setting inputfile, default: wsjtx_log.adi")
-    print(" -e  --enable-idle-log   log even if the log is empty")
+    print(" -e  --enable-idle-log   log idle message \"The source file in is empty; doing nothing\" on every run")
     print(" -l  --logfile           setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
     print(" -d  --delete            empty the inputfile after import, default: no")
     exit(0)
@@ -104,6 +104,7 @@ def main():
     global apikey
     global inputfile
     global delete
+    global idle_log
 
     if 'APIKEY' in os.environ:
         apikey = os.environ['APIKEY']
@@ -140,29 +141,19 @@ def main():
 
     # AND write a file
     if logfile != "null":
-        fhandler = logging.FileHandler(logfile)
-        fhandler.setFormatter(formatter)
-        logging.getLogger().addHandler(fhandler)
+        file_handler = logging.FileHandler(logfile)
+        file_handler.setFormatter(formatter)
+        logging.getLogger().addHandler(file_handler)
 
     with open(inputfile) as f:
         lines = [line.rstrip('\n') for line in open(inputfile)]
-    print("marker #1")
 
-    print("Lines: ",len(lines))
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
-        print("marker #2")
         if idle_log == True:
-            print("Case 0")
             logger.info("The source file " + inputfile + " is empty; doing nothing")
         else:
-            #logger.handlers = []
-            #
-            #logger = logging.getLogger()
-            #formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-            #handler = logging.StreamHandler()
-            #handler.setFormatter(formatter)
-            #logger.addHandler(handler)
-            print("Case 1")
+            logger.handlers = []
+            logger.addHandler(stdout_handler)
             logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
     print("marker #3")
