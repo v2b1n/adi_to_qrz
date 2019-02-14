@@ -85,20 +85,24 @@ is pretty self explanatory. It means that the logbook where you trying to import
 
 ## ADI Log mandatory fields
 
-If the import fails and you spot an error 
+If the import fails and you spot an error
 
 > Server response was:"QRZ Internal Error: Unable to add QSO to database."
 
 check first whether the mandatory fields are presend in your ADIF-log.
 
-The api of logbook.qrz.com requires that an ADIF qso record has following mandatory fields:
+The api of logbook.qrz.com requires that an ADIF qso record has at least following mandatory fields:
 
 ```
+STATION_CALLSIGN or OPERATOR
 CALL
+QSO_DATE
 BAND
 MODE
-QSO_DATE
-STATION_CALLSIGN or OPERATOR
 ```
 
+### Links
 
+WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
+ADIF format specs: http://www.adif.org (v1/v2/v3)
+QRZ API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
