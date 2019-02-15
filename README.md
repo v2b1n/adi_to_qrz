@@ -30,7 +30,15 @@ pi@raspberrypi:~ $ crontab -l
 
 * * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
+
 ```
+
+All other distros should try
+
+```
+python -m pip install requests
+```
+
 
 ### For Windows users
 
