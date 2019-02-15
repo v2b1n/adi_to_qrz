@@ -28,6 +28,7 @@ logger.addHandler(stdout_handler)
 logger.setLevel(logging.DEBUG)
 PATH = os.path.dirname(os.path.abspath(__file__))
 
+# yes, you can specify the apikey directly here
 apikey = "APIKEY_NOT_SPECIFIED"
 apiurl = "https://logbook.qrz.com/api"
 logfile = os.path.basename(__file__).split(".")[0] + ".log"
