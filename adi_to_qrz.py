@@ -156,19 +156,15 @@ def main():
             logger.addHandler(stdout_handler)
             logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
-    print("marker #3")
 
     # per record - add
     for line in lines:
-        print("marker #4")
         if line.endswith("<EOR>") or line.endswith("<eor>"):
             add_record(line)
 
-    print("marker #5")
     # now, if there are any failed records - write them into a separate file
     if len(failed_records) > 0:
         failed_records_file = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_failed_records.adi"
-        logger.info("Writing " + str(len(failed_records)) + " failed records into file " + failed_records_file)
         try:
             f = open(failed_records_file, "w")
             f.write("ADIF Export<eoh>\n")
@@ -180,20 +176,23 @@ def main():
             logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
             if delete == True:
                 logger.warn("Will *not* empty " + inputfile + " due to error above")
+            # and exit NOW, do NOT empty the source file
             exit(1)
         else:
-            # if succeeded writing down failed records - empty the source file, if "-d" flag was provided
-            if delete == True:
-                logger.info("Emptying the source file " + inputfile)
-                try:
-                    f = open(inputfile, "w")
-                    f.write("ADIF Export<eoh>\n")
-                    f.close()
-                except Exception as e2:
-                    logger.error("Could not empty " + inputfile)
-                    logger.error("I/O error({0}): {1}".format(e2.errno, e2.strerror))
-                    exit(1)
+            logger.info("Written " + str(len(failed_records)) + " failed records into file " + failed_records_file)
 
+    # if succeeded writing down failed records (not exited with (1) above) - empty the source file, if "-d" flag was provided
+    if delete == True:
+        try:
+            f = open(inputfile, "w")
+            f.write("ADIF Export<eoh>\n")
+            f.close()
+        except Exception as e2:
+            logger.error("Could not empty " + inputfile)
+            logger.error("I/O error({0}): {1}".format(e2.errno, e2.strerror))
+            exit(1)
+        else:
+            logger.info("Emptied the source file " + inputfile)
 
 
 ########################################
