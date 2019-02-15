@@ -21,7 +21,11 @@ On a debian-based linux-distro a
 apt-get update
 apt-get -y install python-requests
 ```
-will usually make things work.
+will usually make things work. All other distros should try
+
+```
+python -m pip install requests
+```
 
 Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and create a cronjob like this:
 
@@ -33,11 +37,6 @@ pi@raspberrypi:~ $
 
 ```
 
-All other distros should try
-
-```
-python -m pip install requests
-```
 
 
 ### For Windows users
