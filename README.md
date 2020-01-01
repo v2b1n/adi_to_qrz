@@ -105,4 +105,5 @@ MODE
 
 * WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
-* QRZ API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
+* qrz.com REST API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
+* qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html
