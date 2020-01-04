@@ -12,6 +12,7 @@ program_url = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 import io
 import logging
 import os
+import re
 # https://2.python-requests.org//de/latest/user/quickstart.html
 import requests
 import sys
@@ -29,7 +30,6 @@ formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 stdout_handler = logging.StreamHandler()
 stdout_handler.setFormatter(formatter)
 logger.addHandler(stdout_handler)
-logger.setLevel(logging.INFO)
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 xmlkey = "QRZ_COM_XMLKEY"
@@ -48,7 +48,7 @@ inputfile = "wsjtx_log.adi"
 failed_records = []
 delete = False
 idle_log = False
-
+debug = False
 
 def get_xml_session_key():
     global xmlurl,xmlkey,xml_username,xml_password
@@ -158,15 +158,19 @@ def fetch_callsign_data(call):
             doc = xmltodict.parse(r.text)
 
             if 'Error' in doc['QRZDatabase']['Session']:
-                logger.error("Error: "+doc['QRZDatabase']['Session']['Error'])
-                exit(1)
+                if re.match( "Not found.*", doc['QRZDatabase']['Session']['Error']):
+                    logger.info("Call "+call+" was not found on qrz.com")
+                else:
+                    logger.error("Some unhandled error occured: "+doc['QRZDatabase']['Session']['Error'])
+                    logger.debug(r.headers)
+                    logger.debug(r.text)
+                    exit(1)
             else:
                 # if no 'Callsign' in the answer for any reason
                 if 'Callsign' not in doc['QRZDatabase']:
                     logger.error("Could not find userdata in xml-response body:")
-                    logger.error(r.text)
-                    #logger.error(r.status_code)
-                    #logger.error(r.headers)
+                    logger.debug(r.headers)
+                    logger.debug(r.text)
                     exit(1)
                 else:
                     # success, userdata is present and readable
@@ -179,10 +183,11 @@ def fetch_callsign_data(call):
 def fetch_locator():
     global userdata
 
-#    if 'grid' in userdata:
-#        logger.info("Grid of user "+userdata['call']+" is "+userdata['grid'])
-
-    return userdata['grid']
+    if 'grid' in userdata:
+        #logger.info("Grid of user "+userdata['call']+" is "+userdata['grid'])
+        return userdata['grid']
+    else:
+        return ""
 
 def add_record(record):
     global apikey,apiurl
@@ -259,11 +264,12 @@ def print_help():
     print(" -e  --enable-idle-log   log idle message \"The source file in is empty; doing nothing\" on every run")
     print(" -l  --logfile           setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
     print(" -d  --delete            empty the inputfile after import, default: no")
+    print("     --debug             enable debugging output")
     print("")
     exit(0)
 
 def main():
-    global logfile
+    global logfile,debug
     global apikey,apiurl
     global xmlkey,xml_username,xml_password,xml_lookups
     global inputfile
@@ -277,12 +283,12 @@ def main():
         xml_username = os.environ['QRZ_COM_USERNAME']
 
     if 'QRZ_COM_PASSWORD' in os.environ:
-        xml_password = os.environ['QRZ_COM_PASSWPRD']
+        xml_password = os.environ['QRZ_COM_PASSWORD']
 
     # grab opts
     options, remainder = getopt.gnu_getopt(sys.argv[1:],
             'l:a:hedi:xu:p:',
-        ['logfile=', 'apikey=', 'help', 'idle_log','delete', 'inputfile=', 'xmllookups', 'username=', 'password=' ])
+        ['logfile=', 'apikey=', 'help', 'idle_log','delete', 'inputfile=', 'xmllookups', 'username=', 'password=', 'debug' ])
 
     # check opts
     for opt, arg in options:
@@ -300,10 +306,17 @@ def main():
             delete = True
         elif opt in ('-e', '--enable-idle-log'):
             idle_log = True
+        elif opt in ('--debug'):
+            debug = True
         elif opt in ('-h', '--help'):
             print_help()
         elif opt in ('-i', '--inputfile'):
             inputfile = arg
+
+    if ( debug == True):
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     # now check whether everything needed is given - at least apikey & inputfile
     # must be present
@@ -406,7 +419,7 @@ def enrich_record(record):
             if data['GRIDSQUARE'] == "":
                 data['GRIDSQUARE'] = "(not provided)"
             logger.debug("Will try to enrich grid locator data for "+data['CALL'])
-            logger.debug("Grid locator currently: "+data['GRIDSQUARE'])
+            logger.debug("Grid locator from wsjtx_log.adi: "+data['GRIDSQUARE'])
             fetch_callsign_data(data['CALL'])
 
             new_locator = fetch_locator()

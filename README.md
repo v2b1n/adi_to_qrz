@@ -72,6 +72,7 @@ Usage: adi_to_qrz.py [options]
  -i  --inputfile  setting inputfile, default: wsjtx_log.adi
  -l  --logfile    setting logfile, default: adi_to_qrz.log
  -d  --delete     empty the inputfile after import, default: no
+     --debug      enable debugging output
 ```
 
 The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access. Where do you get one?
