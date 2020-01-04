@@ -1,22 +1,26 @@
 #!/usr/bin/env python
 
-# Author: Vladimir Vecgailis <vladimir@vovka.de>, DO2VV
+# Author: Vladimir Vecgailis <vladimir@vovka.de>, DM2VV
 # https://www.vovka.de/v2b1n/adi_to_qrz/
 #
 # This program is distributed under terms of GPL.
 #
-# v0.3
+program_name = "adi_to_qrz"
+program_version = "0.4"
+program_url = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 import io
 import logging
 import os
+# https://2.python-requests.org//de/latest/user/quickstart.html
 import requests
 import sys
 import time
 import datetime
 import getopt
-
+import xmltodict
 import logging
+
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -25,25 +29,174 @@ formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 stdout_handler = logging.StreamHandler()
 stdout_handler.setFormatter(formatter)
 logger.addHandler(stdout_handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 PATH = os.path.dirname(os.path.abspath(__file__))
 
-# yes, you can specify the apikey directly here
-apikey = "APIKEY_NOT_SPECIFIED"
+xmlkey = "QRZ_COM_XMLKEY"
+xmlurl = "http://xmldata.qrz.com/xml/current/"
+xml_username = "QRZ_COM_USERNAME"
+xml_password = "QRZ_COM_PASSWORD"
+xml_userdata = {}
+xml_lookups = False
+userdata = {}
+
+apikey = "QRZ_COM_APIKEY"
 apiurl = "https://logbook.qrz.com/api"
+
 logfile = os.path.basename(__file__).split(".")[0] + ".log"
 inputfile = "wsjtx_log.adi"
 failed_records = []
 delete = False
 idle_log = False
 
+
+def get_xml_session_key():
+    global xmlurl,xmlkey,xml_username,xml_password
+
+    session_key_cache = ".session_key"
+
+
+    # either set the provided key
+    if 'XMLKEY' in os.environ:
+        xmlkey = os.environ['XMLKEY']
+        return
+
+    # try to read the cached key
+    try:
+        with open(session_key_cache) as f:
+            xmlkey = f.read()
+            xmlkey = xmlkey.strip()
+            logger.debug("Cache file exists, cached key "+str(xmlkey))
+
+            # validate by doing a dxcc fetch for entity 291 (USA)
+            logger.debug("Validating xmlkey")
+
+            payload = {'s': xmlkey, 'dxcc': "291" }
+
+            try:
+                r = requests.post(xmlurl, data = payload)
+            except Exception as c:
+                logger.error("Could not connect to "+ xmlurl)
+                exit(1)
+            else:
+                if ( r.status_code == 200 ):
+                    doc = xmltodict.parse(r.text)
+
+                    if 'Error' in doc['QRZDatabase']['Session']:
+                        if (doc['QRZDatabase']['Session']['Error'] == "Session Timeout"):
+                            logger.info("Cached key is expired")
+                        else:
+                            logger.error("An error occured when validating cached key: "+ doc['QRZDatabase']['Session']['Error'])
+
+                        xmlkey = ""
+                    else:
+                        logger.debug("Session key is valid")
+
+
+    except IOError:
+        logger.debug("Cache file does not exist")
+        xmlkey = ""
+
+    # if still empty - then it has to be retrieved & saved
+    if xmlkey == "":
+        logger.debug("Getting a new xmlkey")
+
+        payload = {'username': xml_username, 'password': xml_password, 'agent': program_name+"/"+program_version }
+
+        try:
+            r = requests.post(xmlurl, data = payload)
+        except Exception as c:
+            logger.error("Could not connect to "+ xmlurl)
+            exit(1)
+        else:
+            if ( r.status_code == 200 ):
+                doc = xmltodict.parse(r.text)
+
+                if 'Error' in doc['QRZDatabase']['Session']:
+                    logger.error("Error: "+doc['QRZDatabase']['Session']['Error'])
+                    exit(1)
+                else:
+                    # if no 'Callsign' in the answer for any reason
+                    if 'Key' not in doc['QRZDatabase']['Session']:
+                        logger.error("Could not find session key in xml-response")
+                        logger.debug(r.headers)
+                        logger.debug(r.text)
+                        exit(1)
+                    else:
+                        # success, key is present and readable
+                        xmlkey = doc['QRZDatabase']['Session']['Key']
+                        logger.debug("Have retrieved and set xmlkey "+xmlkey)
+                        # caching it
+                        try:
+                            f = open(session_key_cache, "w")
+                            f.write(xmlkey)
+                            f.close();
+                        except Exception as e:
+                            logger.error("Could not write session key cache file "+session_key_cache)
+                            logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
+                            exit(1)
+                        else:
+                            logger.debug("Written session key into " + session_key_cache)
+
+
+def fetch_callsign_data(call):
+    global xmlkey,xmlurl,userdata
+
+    call = call.upper()
+
+    logger.debug("Fetching callsign data for "+ call)
+
+    payload = {'s': xmlkey, 'callsign': call }
+
+    try:
+        r = requests.post(xmlurl, data = payload)
+    except Exception as c:
+        logger.error("Could not connect to "+ xmlurl)
+        exit(1)
+    else:
+        if ( r.status_code == 200 ):
+            doc = xmltodict.parse(r.text)
+
+            if 'Error' in doc['QRZDatabase']['Session']:
+                logger.error("Error: "+doc['QRZDatabase']['Session']['Error'])
+                exit(1)
+            else:
+                # if no 'Callsign' in the answer for any reason
+                if 'Callsign' not in doc['QRZDatabase']:
+                    logger.error("Could not find userdata in xml-response body:")
+                    logger.error(r.text)
+                    #logger.error(r.status_code)
+                    #logger.error(r.headers)
+                    exit(1)
+                else:
+                    # success, userdata is present and readable
+                    userdata = {}
+                    userdata = doc['QRZDatabase']['Callsign']
+
+
+
+
+def fetch_locator():
+    global userdata
+
+#    if 'grid' in userdata:
+#        logger.info("Grid of user "+userdata['call']+" is "+userdata['grid'])
+
+    return userdata['grid']
+
 def add_record(record):
-    global apikey
-    global apiurl
+    global apikey,apiurl
+    global userdata
+
+    record = enrich_record(record)
+
+    logger.debug("Will add record "+record)
+
     payload = {'KEY': apikey, 'ACTION': 'INSERT', 'ADIF': record }
     call = ""
 
-    # Find CALL in record and set it for later use
+    # independently of the xml-lookup availability -
+    # find CALL in record and set it for later use
     for x in record.split('<'):
         if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
             next
@@ -72,8 +225,9 @@ def add_record(record):
                         reason = params['REASON']
                     else:
                         reason = "No failure reasons provided by server"
-                    logger.error("Insert of QSO with " + call +" failed(Server response was: \"" + reason +"\")")
-                    logger.error("Failed record: " + record )
+                    logger.error("Insert of QSO with " + call +" failed.")
+                    logger.error("Server response was: \"" + reason + "\"")
+                    logger.debug("Failed record: " + record )
 
             if 'STATUS' in params:
                 if params['STATUS'] == "FAIL":
@@ -83,26 +237,35 @@ def add_record(record):
                     else:
                         reason = "No failure reasons provided by server"
 
-                    logger.error("Insert of QSO with " + call +" failed(Server response was:\"" + reason +"\")")
-                    logger.error("Failed record: " + record )
+                    logger.error("Insert of QSO with " + call +" failed")
+                    logger.error("Server response was: \"" + reason + "\"")
+                    logger.debug("Failed record: " + record )
         else:
             logger.error("The server responded with http-code " + str(r.status_code) + " upon submission of QSO with " + call)
             exit(1)
 
 
 def print_help():
+    print("")
+    print(program_name + " " + program_version + " ( " + program_url + " )")
+    print("")
     print("Usage: " + os.path.basename(__file__) + " [options]")
     print(" -h  --help              print this usage and exit")
     print(" -a  --apikey            setting apikey for api-connection")
+    print(" -x  --xmlkey            setting xmlkey for xml-connection")
+    print(" -u  --username          setting username for xml-connection")
+    print(" -p  --password          setting password for xml-connection")
     print(" -i  --inputfile         setting inputfile, default: wsjtx_log.adi")
     print(" -e  --enable-idle-log   log idle message \"The source file in is empty; doing nothing\" on every run")
     print(" -l  --logfile           setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
     print(" -d  --delete            empty the inputfile after import, default: no")
+    print("")
     exit(0)
 
 def main():
     global logfile
-    global apikey
+    global apikey,apiurl
+    global xmlkey,xml_username,xml_password,xml_lookups
     global inputfile
     global delete
     global idle_log
@@ -110,10 +273,16 @@ def main():
     if 'APIKEY' in os.environ:
         apikey = os.environ['APIKEY']
 
+    if 'QRZ_COM_USERNAME' in os.environ:
+        xml_username = os.environ['QRZ_COM_USERNAME']
+
+    if 'QRZ_COM_PASSWORD' in os.environ:
+        xml_password = os.environ['QRZ_COM_PASSWPRD']
+
     # grab opts
     options, remainder = getopt.gnu_getopt(sys.argv[1:],
-        'l:a:hedi:',
-        ['logfile=', 'apikey=', 'help', 'idle_log','delete', 'inputfile=', ])
+            'l:a:hedi:xu:p:',
+        ['logfile=', 'apikey=', 'help', 'idle_log','delete', 'inputfile=', 'xmllookups', 'username=', 'password=' ])
 
     # check opts
     for opt, arg in options:
@@ -121,6 +290,12 @@ def main():
             logfile = arg
         elif opt in ('-a', '--apikey'):
             apikey = arg
+        elif opt in ('-x', '--xmllookups'):
+            xml_lookups = True
+        elif opt in ('-u', '--username'):
+            xml_username = arg
+        elif opt in ('-p', '--password'):
+            xml_password = arg
         elif opt in ('-d', '--delete'):
             delete = True
         elif opt in ('-e', '--enable-idle-log'):
@@ -132,9 +307,21 @@ def main():
 
     # now check whether everything needed is given - at least apikey & inputfile
     # must be present
-    if apikey in ('', 'APIKEY_NOT_SPECIFIED'):
+    if apikey in ('', 'QRZ_COM_APIKEY'):
         logger.error("API key for qrz.com not specified. Please use either \"-a\" key or set environment variable \"APIKEY\".")
         exit(2)
+
+    # if xml_lookups are requested, username and password must be provided
+    if xml_lookups == True:
+        if xml_username in ('', 'QRZ_COM_USERNAME'):
+            logger.error("Username for qrz.com not specified. Please use either \"-u\" key or set environment variable \"QRZ_COM_USERNAME\".")
+            exit(2)
+
+        if xml_password in ('', 'QRZ_COM_PASSWORD'):
+            logger.error("Password for qrz.com not specified. Please use either \"-p\" key or set environment variable \"QRZ_COM_PASSWORD\".")
+            exit(2)
+
+        get_xml_session_key()
 
     if not os.path.isfile(inputfile):
         logger.error("The inputfile " + inputfile + " does not exist")
@@ -194,6 +381,50 @@ def main():
             exit(1)
         else:
             logger.info("Emptied the source file " + inputfile)
+
+
+def enrich_record(record):
+
+    if xmlkey in ('', 'QRZ_COM_XMLKEY'):
+        logger.debug("XMLKEY not set; missing qrz.com username/password. Will *not* try to enrich QSO grid data.")
+    else:
+        # enriching the record data with some values,
+        # e.g. adding an at least 6 chars long locator
+
+        data = {}
+
+        # splitting fields
+        for x in record.split('<'):
+            if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
+                next
+            else:
+                key = x.split(':')[0].upper()
+                value = ((x.split('>')[1]).strip()).upper()
+                data[key] = str(value)
+
+        if len(data['GRIDSQUARE']) <= 4:
+            if data['GRIDSQUARE'] == "":
+                data['GRIDSQUARE'] = "(not provided)"
+            logger.debug("Will try to enrich grid locator data for "+data['CALL'])
+            logger.debug("Grid locator currently: "+data['GRIDSQUARE'])
+            fetch_callsign_data(data['CALL'])
+
+            new_locator = fetch_locator()
+            if (len(new_locator) >= 6):
+                logger.info("Updating "+data['CALL']+" locator from "+data['GRIDSQUARE']+" to "+new_locator)
+                data['GRIDSQUARE'] = new_locator
+                logger.debug("Old record: "+record)
+                # constructing back the ADIF record since data was modified
+                record = ""
+                for element in data:
+                    record += "<" + element.lower() + ":" + str(len(data[element])) + ">" + str(data[element]) + " "
+                record += " <eor>"
+                logger.debug("New record: "+record)
+            else:
+                logger.info("No precise locator data found; leaving record untouched")
+
+    return record
+
 
 
 ########################################

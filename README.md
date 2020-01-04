@@ -1,6 +1,7 @@
 # adi_to_qrz
 
 This python script uploads your ADI-logfile to qrz.com logbook.
+If desired, it can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference.
 
 ## Why?
 My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i noticed that the manual upload-procedure to qrz.com is rather boring.
@@ -63,12 +64,14 @@ As the "help" sections shows, the usage is pretty straightforward
 ```
 ./adi_to_qrz.py  -h
 Usage: adi_to_qrz.py [options]
- -h  --help              print this usage and exit
- -a  --apikey            setting apikey for api-connection
- -h  --inputfile         setting inputfile, default: wsjtx_log.adi
- -e  --enable-idle-log   log idle message "The source file in is empty; doing nothing" on every run
- -l  --logfile           setting logfile, default: adi_to_qrz.log
- -d  --delete            empty the inputfile after import, default: no
+ -h  --help       print this usage and exit
+ -a  --apikey     setting apikey for api-connection
+ -x  --xmllookups enable xml-lookups for better grid locator data
+ -u  --username   qrz.com username, must be provided if xml-lookups are enabled
+ -p  --password   qrz.com password, must be provided if xml-lookups are enabled
+ -i  --inputfile  setting inputfile, default: wsjtx_log.adi
+ -l  --logfile    setting logfile, default: adi_to_qrz.log
+ -d  --delete     empty the inputfile after import, default: no
 ```
 
 The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access. Where do you get one?
@@ -76,7 +79,10 @@ Please, just google for it https://www.google.de/search?q=qrz+logbook+api+key.
 
 Beside of specifying the apikey as "-a" option you can also set it as environment variable "APIKEY".
 
+qrz.com username and password can be provided as options -u/--username && -p/--password or as environment variables: "QRZ_COM_USERNAME" and "QRZ_COM_PASSWORD".
+
 All actions are logged into a logfile.
+
 To disable logfile writing entirely specify "-l null".
 
 All ADI-log-records rejected by QRZ-server are stored into a file that is named "YYYMMDD_HHmm_failed_records.adi", where YYYYMMDD_HHmm is the current date and time.
@@ -133,4 +139,5 @@ where *STATION_CALLSIGN* or *OPERATOR* **must** contain YOUR callsign
 
 * WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
-* QRZ API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
+* qrz.com REST API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
+* qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html

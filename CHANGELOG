@@ -1,3 +1,7 @@
+## v0.4
+* Added xml lookups ability via xml-interface of qrz.com.
+While WSJT-X provides only 4 chars of the grid locator, on 2m the precision of 4 chars long locator and 6 chars long is quite a difference. The new functionality fetches provided grid locator data - if available - for the given callsign and enriches the QSO data bevore saving in qrz.com's logbook.
+
 ## v0.3
 
 * the "idle" message, thus message when an empty log is procesed, is now not written into logfile by default. This prevents the log to grow only because of these, not really interesting, log records. The new switch "-e" allows, however, to re-enable it, so on every run you can see whether the script was actually executed or not.
