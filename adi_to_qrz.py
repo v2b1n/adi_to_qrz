@@ -85,6 +85,8 @@ def get_xml_session_key():
                     if 'Error' in doc['QRZDatabase']['Session']:
                         if (doc['QRZDatabase']['Session']['Error'] == "Session Timeout"):
                             logger.info("Cached key is expired")
+                        elif (doc['QRZDatabase']['Session']['Error'] == "Invalid session key"):
+                            logger.info("Cached key is no more valid")
                         else:
                             logger.error("An error occured when validating cached key: "+ doc['QRZDatabase']['Session']['Error'])
 
@@ -126,17 +128,17 @@ def get_xml_session_key():
                         # success, key is present and readable
                         xmlkey = doc['QRZDatabase']['Session']['Key']
                         logger.debug("Have retrieved and set xmlkey "+xmlkey)
+                        logger.info("Successfully retrieved a new session key")
                         # caching it
                         try:
                             f = open(session_key_cache, "w")
                             f.write(xmlkey)
                             f.close();
+                            logger.debug("Written session key into " + session_key_cache)
                         except Exception as e:
                             logger.error("Could not write session key cache file "+session_key_cache)
                             logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
                             exit(1)
-                        else:
-                            logger.debug("Written session key into " + session_key_cache)
 
 
 def fetch_callsign_data(call):
