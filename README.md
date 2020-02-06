@@ -1,7 +1,14 @@
 # adi_to_qrz
 
-This python script uploads your ADI-logfile to qrz.com logbook.
-If desired, it can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference.
+This python script uploads your ADI-logfile to qrz.com logbook. Please see "Features" for a full features list.
+
+## Features
+
+* uploads ADI-logfile entries to qrz.com logbook
+* empties the ADI-logfile if told to do so
+* fetches remote party's grid locator data from qrz.com
+  * if desired, the program can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference in distance calculation.
+* keeps erroneous/non-imported QSOs and writes them into a separate file, see FAQ 
 
 ## Why?
 My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i noticed that the manual upload-procedure to qrz.com is rather boring.
@@ -12,7 +19,6 @@ This script fixes it - being triggered every minute by cron, it grabs the "wsjtx
 ### For Linux users
 
 Beside regular python installation, following python package is required:
-
 ```
 python-requests
 ```
@@ -33,7 +39,7 @@ Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.loca
 ```
 pi@raspberrypi:~ $ crontab -l
 
-* * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
+*/5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
 
 ```
@@ -136,7 +142,14 @@ MODE
 ```
 where *STATION_CALLSIGN* or *OPERATOR* **must** contain YOUR callsign
 
-### Links
+
+## "Things does not work as expected! Please help!"
+
+Please open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new and describe the problem.
+Also attaching the adi-logfile and the program-logfile, or their relevant parts, will help.
+
+
+# Links
 
 * WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
