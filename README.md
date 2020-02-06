@@ -39,6 +39,7 @@ Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.loca
 ```
 pi@raspberrypi:~ $ crontab -l
 
+# trigger every 5 minutes
 */5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
 
