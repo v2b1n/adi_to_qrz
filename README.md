@@ -156,3 +156,4 @@ Also attaching the adi-logfile and the program-logfile, or their relevant parts,
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
 * qrz.com REST API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
 * qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html
+* lotw developer information https://lotw.arrl.org/lotw-help/developer-information/
