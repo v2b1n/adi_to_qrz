@@ -26,12 +26,12 @@ python-requests
 On a debian-based linux-distro a
 ```
 apt-get update
-apt-get -y install python-requests
+apt-get -y install python-requests python-xmltodict
 ```
 will usually make things work. All other distros should try
 
 ```
-python -m pip install requests
+python -m pip install requests xmltodict
 ```
 
 Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and create a cronjob like this:
@@ -39,6 +39,7 @@ Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.loca
 ```
 pi@raspberrypi:~ $ crontab -l
 
+MAILTO=""
 # trigger every 5 minutes
 */5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
@@ -99,13 +100,15 @@ All ADI-log-records rejected by QRZ-server are stored into a file that is named 
 
 # FAQ
 
-* Q: _Will that script overwrite existing entries in the QRZ logbook?_
+* Q: _Will that script overwrite existing entries in the QRZ logbook? 
   * A: No, the script will NOT overwrite your existing entries. It will only add NEW records.
 
-* Q: _Will that script empty/delete my ADI logfile after importing records into QRZ logbook ?_
+
+* Q: _Will that script empty/delete my ADI logfile after importing records into QRZ logbook ? 
   * A: By default - no, the script will NOT empty the file you specified for import. If you specify a key "-d" - yes, it will.
 
-* Q: _If i specify "-d" flag so my ADI logfile is emptied - what happens to the erroneous/non-imported QSO-records?_
+
+* Q: _If i specify "-d" flag so my ADI logfile is emptied - what happens to the erroneous/non-imported QSO-records? 
   * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is "YYYMMDD_HHmm_failed_records.adi", where YYYYMMDD_HHmm is the current date and time.
 
 
