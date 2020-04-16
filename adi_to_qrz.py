@@ -6,7 +6,7 @@
 # This program is distributed under terms of GPL.
 #
 program_name = "adi_to_qrz"
-program_version = "0.4"
+program_version = "0.5"
 program_url = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 import io
@@ -49,6 +49,7 @@ failed_records = []
 delete = False
 idle_log = False
 debug = False
+exitcode = 0
 
 def get_xml_session_key():
     global xmlurl,xmlkey,xml_username,xml_password
@@ -194,17 +195,26 @@ def fetch_locator():
 def add_record(record):
     global apikey,apiurl
     global userdata
+    global exitcode
+
+    # filtering of the record in general is not done for simple reason:
+    # - comment/info/nameit fields *may* contain language-specific chars
+    # trying to catch all the possibilities is not really usefull.
+    # It's up to users program to properly log records.
+    # So will pass the stuff 1:1 to qrz.com.
 
     record = enrich_record(record)
 
-    logger.debug("Will add record "+record)
+    logger.debug("Will try to add record \""+record+"\"")
 
-    payload = {'KEY': apikey, 'ACTION': 'INSERT', 'ADIF': record }
+    payload = { 'KEY': apikey, 'ACTION': 'INSERT', 'ADIF': record }
     call = ""
 
     # independently of the xml-lookup availability -
     # find CALL in record and set it for later use
     for x in record.split('<'):
+        # filtering out weird stuff in fields when looking for a "call"
+        x = re.sub('[^\w\s:<>\-]+', '', x)
         if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
             next
         else:
@@ -235,6 +245,7 @@ def add_record(record):
                     logger.error("Insert of QSO with " + call +" failed.")
                     logger.error("Server response was: \"" + reason + "\"")
                     logger.debug("Failed record: " + record )
+                    exitcode = 1
 
             if 'STATUS' in params:
                 if params['STATUS'] == "FAIL":
@@ -243,10 +254,13 @@ def add_record(record):
                         reason = params['REASON']
                     else:
                         reason = "No failure reasons provided by server"
+                    if 'EXTENDED' in params:
+                        reason += " " + params['EXTENDED']
 
                     logger.error("Insert of QSO with " + call +" failed")
                     logger.error("Server response was: \"" + reason + "\"")
                     logger.debug("Failed record: " + record )
+                    exitcode = 1
         else:
             logger.error("The server responded with http-code " + str(r.status_code) + " upon submission of QSO with " + call)
             exit(1)
@@ -271,7 +285,7 @@ def print_help():
     exit(0)
 
 def main():
-    global logfile,debug
+    global logfile,debug,exitcode
     global apikey,apiurl
     global xmlkey,xml_username,xml_password,xml_lookups
     global inputfile
@@ -396,6 +410,7 @@ def main():
             exit(1)
         else:
             logger.info("Emptied the source file " + inputfile)
+    exit(exitcode)
 
 
 def enrich_record(record):
@@ -411,11 +426,22 @@ def enrich_record(record):
         # splitting fields
         for x in record.split('<'):
             if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
-                next
+                logger.debug("Ignoring field: " + x)
             else:
-                key = x.split(':')[0].upper()
-                value = ((x.split('>')[1]).strip()).upper()
-                data[key] = str(value)
+                # trying to split the line
+                try:
+                    key = x.split(':')[0].upper()
+                except:
+                    logger.debug("Failed to extract key from \"" + x + "\"")
+
+                # ignoring keys with weird stuff in names
+                # the only permitted chars are "[A-Z0-9_]", thus "\w"
+                # So, if anything else is present - it can't be right, ignoring the key then
+                if re.match('[^\w]+', key):
+                    logger.debug("Ignoring key: " + key)
+                else:
+                    value = ((x.split('>')[1]).strip()).upper()
+                    data[key] = str(value)
 
         if len(data['GRIDSQUARE']) <= 4:
             if data['GRIDSQUARE'] == "":

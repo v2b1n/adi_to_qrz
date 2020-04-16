@@ -72,15 +72,16 @@ As the "help" sections shows, the usage is pretty straightforward
 ```
 ./adi_to_qrz.py  -h
 Usage: adi_to_qrz.py [options]
- -h  --help       print this usage and exit
- -a  --apikey     setting apikey for api-connection
- -x  --xmllookups enable xml-lookups for better grid locator data
- -u  --username   qrz.com username, must be provided if xml-lookups are enabled
- -p  --password   qrz.com password, must be provided if xml-lookups are enabled
- -i  --inputfile  setting inputfile, default: wsjtx_log.adi
- -l  --logfile    setting logfile, default: adi_to_qrz.log
- -d  --delete     empty the inputfile after import, default: no
-     --debug      enable debugging output
+ -h  --help             print this usage and exit
+ -a  --apikey           setting apikey for api-connection
+ -x  --xmllookups       make grid data lookups over qrz.com's xml-interface, default: no
+ -u  --username         qrz.com username for xml-lookups
+ -p  --password         qrz.com password for xml-lookups
+ -i  --inputfile        setting inputfile, default: wsjtx_log.adi
+ -e  --enable-idle-log  log idle message "The source file in is empty; doing nothing" on every run
+ -l  --logfile          setting logfile, default: adi_to_qrz.log
+ -d  --delete           empty the inputfile after import, default: no
+     --debug            enable debugging output
 ```
 
 The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access. Where do you get one?
@@ -146,11 +147,24 @@ MODE
 ```
 where *STATION_CALLSIGN* or *OPERATOR* **must** contain YOUR callsign
 
+In most cases the server responses with a more or less self-explanatory message like
 
-## "Things does not work as expected! Please help!"
+> Server response was:"QRZ Internal Error: Unable to add QSO to database. add_qso: outside date range"
 
-Please open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new and describe the problem.
-Also attaching the adi-logfile and the program-logfile, or their relevant parts, will help.
+which are pretty self-explanatory. E.g "add_qso: outside date range" means that the the QSO does not "fit" into logbook's date-range (which is specified when creating the logbook)
+
+## "Things still does not work as expected!"
+
+Please run the program with the "--debug" flag. In most cases the error message shows clearly what the actual problem is - either a broken log-file, or weird formatted entries/fields & you can possibly fix is on your own.
+
+## "Can't figure out what the error is! Please help!"
+
+If you still cannot handle the problems or the run of the program show  some python code errors - feel free to open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new, describe the problem and
+provide
+* the adi-logfile that makes troubles
+* the log from the "--debug" program run
+* output of ```python -V```
+* the info which adi_to_qrz.py program version you are using
 
 
 # Links
