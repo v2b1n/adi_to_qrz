@@ -14,6 +14,10 @@ This python script uploads your ADI-logfile to qrz.com logbook. Please see "Feat
 My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i noticed that the manual upload-procedure to qrz.com is rather boring.
 This script fixes it - being triggered every couple of minutes by cron, it grabs the "wsjtx_log.adi" and the uploads the QSO-records.
 
+## qrz.com account requirements
+Please keep in mind, that to be able to upload logs automatically you  need a valid qrz.com account and have a valid subcription. It is needed needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups.
+The "XML Logbook Data Subscription" is sufficient.
+
 ## System requirements & installation instructions
 
 ### For Linux users
