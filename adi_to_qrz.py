@@ -277,7 +277,7 @@ def print_help():
     print(" -u  --username          qrz.com username for xml-lookups")
     print(" -p  --password          qrz.com password for xml-lookups")
     print(" -i  --inputfile         setting inputfile, default: wsjtx_log.adi")
-    print(" -e  --enable-idle-log   log idle message \"The source file in is empty; doing nothing\" on every run")
+    print(" -e  --enable-idle-log   log message \"The source file is empty; doing nothing\" on every run if logfile is empty")
     print(" -l  --logfile           setting logfile, default: "+ os.path.basename(__file__).split(".")[0] + ".log")
     print(" -d  --delete            empty the inputfile after import, default: no")
     print("     --debug             enable debugging output")
