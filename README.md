@@ -155,7 +155,7 @@ In most cases the server responses with a more or less self-explanatory message 
 
 > Server response was:"QRZ Internal Error: Unable to add QSO to database. add_qso: outside date range"
 
-which are pretty self-explanatory. E.g "add_qso: outside date range" means that the the QSO does not "fit" into logbook's date-range (which is specified when creating the logbook)
+E.g "add_qso: outside date range" means that the the QSO does not "fit" into logbook's date-range (which is specified when creating the logbook)
 
 ## "Things still does not work as expected!"
 
