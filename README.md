@@ -20,7 +20,7 @@ Please keep in mind, that to be able to upload logs automatically you need a val
 ## System requirements & installation instructions
 
 ### API-key
-To authenticate agains qrz.com a api-key for the logbook where you want to import your QSOs is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will find the answer how to find the api-key.
+To authenticate agains qrz.com an api-key for the your logbook, where the QSOs will be imported, is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will get the answer how to find the api-key.
 
 
 ### For Linux users
