@@ -25,49 +25,64 @@ The "XML Logbook Data Subscription" is sufficient.
 Beside regular python installation, following python package is required:
 ```
 python-requests
+python-xmltodict
+python-dateutil
 ```
 
 On a debian-based linux-distro a
 ```
 apt-get update
-apt-get -y install python-requests python-xmltodict
+apt-get -y install python-requests python-xmltodict python-dateutil
 ```
 will usually make things work. All other distros should try
 
 ```
-python -m pip install requests xmltodict
+python -m pip install requests xmltodict dateutils
 ```
 
-Then, put the adi_to_qrz.py into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and create a cronjob like this:
+Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and create a cronjob like this:
 
 ```
 pi@raspberrypi:~ $ crontab -l
 
 MAILTO=""
 # trigger every 5 minutes
-*/5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -d -a "My_Api_Key_Here"
+*/5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -x -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
 
 ```
 
-
-
 ### For Windows users
 
-1. Grab the latest python 3.X release from https://www.python.org/downloads/windows/ and install it
+1. Grab the latest python 3.X release from https://www.python.org/downloads/windows/ and install it. When installing, tick the "Add Python 3.X to PATH" checkbox.
 
-2. Add python installation directory (e.g. the default "C:\Program Files (x86)\Python37-32" or whereever you've installed it) to environment's PATH variable according e.g. to one of these howto's:
+2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing
+```
+python -m pip install install requests xmltodict dateutils
+```
+in the windows terminal.
 
-  *  Windows 7 users: http://geekswithblogs.net/renso/archive/2009/10/21/how-to-set-the-windows-path-in-windows-7.aspx
-  *  Windows 10 users: https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/
+3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WJCT-X log directory (the default is "C:\Users\\$USERNAME\AppData\Local\WSJT-X", *where* **$USERNAME** *is your username*)
 
-3. Grab the latest release of "adi_to_qrz" from https://gitlab.com/v2b1n/adi_to_qrz and put the contained "adi_to_qrz.py" into your WJCT-X log directory (the default is "C:\Users\\$USERNAME\AppData\Local\WSJT-X")
+4. Add a scheduled task that enter the WSJT-X directory and trigger "adi_to_qrz.py" every X minutes. (How? Please google for "How to create an automated task using Task Scheduler on Windows").
 
-4. Edit the "adi_to_qrz.py" and put your QRZ-logbook apikey around line 32 replacing the "APIKEY_NOT_SPECIFIED" string there and save the "adi_to_qrz.py".
+Important points when creating a task are:
+  *  "General" tab ([screenshot 1](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task1.png)):
+    *  Choose here "Run whether user is logged on or not" and "Do not store password" options.
+  *  "Trigger" tab ([screenshot 2](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task2.png)):
+    *  Create here a "trigger" that will be execute the task that often how you define it. In my example i execute it every minute.
+  * "Action" tab ([screenshot 3](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task3.png)) items should be:
+    * Action: ```Start a program```
+    * Program/script: ```C:\Users\$USERNAME\AppData\Local\Programs\Python\Python39-32\python.exe```
+      * alter the path accordingly - **$USERNAME** should be your username and the python directory (here "Python39-32") the one where you've installed python
+    * Add Arguments: ```C:\Users\$USERNAME\AppData\Local\WSJT-X\adi_to_qrz.py -a "your-api-key"```
+      * Here ^^ you have to put your api-key
+      * if you want to add other arguments - like ```-d``` to delete the existing log-entries or ```-x``` to do Locator-lookups - add them also to the list of arguments above, e.g.
+        * ```C:\Users\$USERNAME\AppData\Local\WSJT-X\adi_to_qrz.py -a "your-api-key" -d -x```
+    * Start in : ```C:\Users\$USERNAME\AppData\Local\WSJT-X```
 
-5. Add a scheduled task that triggers "adi_to_qrz.py" every YOU_NAME_IT minutes. (Howto? Please google for "windows how to run scheduled task every x minutes"
-
-
+### For Mac OS users
+(will follow; any contributions are welcome)
 
 ## Usage
 
