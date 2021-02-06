@@ -62,16 +62,16 @@ python -m pip install install requests xmltodict dateutils
 ```
 in the windows terminal.
 
-3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WJCT-X log directory (the default is "C:\Users\\$USERNAME\AppData\Local\WSJT-X", *where* **$USERNAME** *is your username*)
+3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WJCT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your username*)
 
 4. Add a scheduled task that enter the WSJT-X directory and trigger "adi_to_qrz.py" every X minutes. (How? Please google for "How to create an automated task using Task Scheduler on Windows").
 
 Important points when creating a task are:
-  *  "General" tab ([screenshot 1](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task1.png)):
-    *  Choose here "Run whether user is logged on or not" and "Do not store password" options.
-  *  "Trigger" tab ([screenshot 2](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task2.png)):
+  *  "General" tab ([screenshot 1](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task1.png)): 
+    * Choose here "Run whether user is logged on or not" and "Do not store password" options.
+  *  "Trigger" tab ([screenshot 2](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task2.png)): 
     *  Create here a "trigger" that will be execute the task that often how you define it. In my example i execute it every minute.
-  * "Action" tab ([screenshot 3](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task3.png)) items should be:
+  * "Action" tab ([screenshot 3](https://gitlab.com/v2b1n/adi_to_qrz2/-/raw/master/windows/task3.png)) items should be: 
     * Action: ```Start a program```
     * Program/script: ```C:\Users\$USERNAME\AppData\Local\Programs\Python\Python39-32\python.exe```
       * alter the path accordingly - **$USERNAME** should be your username and the python directory (here "Python39-32") the one where you've installed python
