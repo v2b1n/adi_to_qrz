@@ -102,10 +102,9 @@ Usage: adi_to_qrz.py [options]
      --debug            enable debugging output
 ```
 
-The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access. Where do you get one?
-Please, just google for it https://www.google.de/search?q=qrz+logbook+api+key.
+The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access.
 
-Beside of specifying the apikey as "-a" option you can also set it as environment variable "APIKEY".
+Beside of specifying the api-key as "-a" option you can also set it as environment variable "APIKEY".
 
 qrz.com username and password can be provided as options -u/--username && -p/--password or as environment variables: "QRZ_COM_USERNAME" and "QRZ_COM_PASSWORD".
 
