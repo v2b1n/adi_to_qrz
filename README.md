@@ -15,10 +15,13 @@ My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i not
 This script fixes it - being triggered every couple of minutes by cron, it grabs the "wsjtx_log.adi" and the uploads the QSO-records.
 
 ## qrz.com account requirements
-Please keep in mind, that to be able to upload logs automatically you  need a valid qrz.com account and have a valid subcription. It is needed needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups.
-The "XML Logbook Data Subscription" is sufficient.
+Please keep in mind, that to be able to upload logs automatically you need a valid qrz.com account **and have a valid subcription**. It is needed needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups. The "XML Logbook Data Subscription" is sufficient.
 
 ## System requirements & installation instructions
+
+### API-key
+To authenticate agains qrz.com a api-key for the logbook where you want to import your QSOs is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will find the answer how to find the api-key.
+
 
 ### For Linux users
 
