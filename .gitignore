@@ -1,4 +1,5 @@
 .idea
+.run
 .session_key
 .env
 *.adi
