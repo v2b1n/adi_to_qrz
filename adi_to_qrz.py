@@ -48,6 +48,7 @@ debug_flag = False
 exitcode = 0
 
 
+# Getting/Refreshing XML session-key
 def get_xml_session_key():
     global xmlurl, xmlkey, xml_username, xml_password
 
@@ -183,7 +184,6 @@ def fetch_locator():
     global userdata
 
     if 'grid' in userdata:
-        # logger.info("Grid of user "+userdata['call']+" is "+userdata['grid'])
         return userdata['grid']
     else:
         return ""
@@ -283,6 +283,60 @@ def print_help():
     exit(0)
 
 
+def enrich_record(record):
+    if xmlkey in ('', 'QRZ_COM_XMLKEY'):
+        logger.debug("XMLKEY not set; missing qrz.com username/password. Will *not* try to enrich QSO grid data.")
+    else:
+        # enriching the record data with some values,
+        # e.g. adding an at least 6 chars long locator
+
+        data = {}
+
+        # splitting fields
+        for x in record.split('<'):
+            if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
+                logger.debug("Ignoring field: " + x)
+            else:
+                # trying to split the line
+                key = ""
+                try:
+                    key = x.split(':')[0].upper()
+                except ValueError:
+                    logger.debug("Failed to extract key from \"" + x + "\"")
+
+                # ignoring keys with weird stuff in names
+                # the only permitted chars are "[A-Z0-9_]", thus "\w"
+                # So, if anything else is present - it can't be right, ignoring the key then
+                if re.match('[^\w]+', key):
+                    logger.debug("Ignoring key: " + key)
+                else:
+                    value = ((x.split('>')[1]).strip()).upper()
+                    data[key] = str(value)
+
+        if len(data['GRIDSQUARE']) <= 4:
+            if data['GRIDSQUARE'] == "":
+                data['GRIDSQUARE'] = "(not provided)"
+            logger.debug("Will try to enrich grid locator data for " + data['CALL'])
+            logger.debug("Grid locator from wsjtx_log.adi: " + data['GRIDSQUARE'])
+            fetch_callsign_data(data['CALL'])
+
+            new_locator = fetch_locator()
+            if len(new_locator) >= 6:
+                logger.info("Updating " + data['CALL'] + " locator from " + data['GRIDSQUARE'] + " to " + new_locator)
+                data['GRIDSQUARE'] = new_locator
+                logger.debug("Old record: " + record)
+                # constructing back the ADIF record since data was modified
+                record = ""
+                for element in data:
+                    record += "<" + element.lower() + ":" + str(len(data[element])) + ">" + str(data[element]) + " "
+                record += " <eor>"
+                logger.debug("New record: " + record)
+            else:
+                logger.info("No precise locator data found; leaving record untouched")
+
+    return record
+
+
 def main():
     global logfile, debug_flag, exitcode
     global apikey, apiurl
@@ -291,6 +345,7 @@ def main():
     global delete_flag
     global write_idle_log
 
+    # grab variables if present in environment
     if 'APIKEY' in os.environ:
         apikey = os.environ['APIKEY']
 
@@ -361,11 +416,12 @@ def main():
 
         get_xml_session_key()
 
+    # check whether the default/specified inputfile is present
     if not os.path.isfile(inputfile):
         logger.error("The inputfile " + inputfile + " does not exist")
         exit(3)
 
-    # AND write a file
+    # create the default/requested logfile
     if logfile != "null":
         file_handler = logging.FileHandler(logfile)
         file_handler.setFormatter(formatter)
@@ -374,6 +430,7 @@ def main():
     with open(inputfile):
         lines = [line.rstrip('\n') for line in open(inputfile)]
 
+    # if the inputfile containes only the header, then there's nothing to do..
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
         if write_idle_log:
             logger.info("The source file " + inputfile + " is empty; doing nothing")
@@ -383,7 +440,7 @@ def main():
             logger.info("The source file " + inputfile + " is empty; doing nothing")
         exit(0)
 
-    # per record - add
+    # if it does contains entries - per record - add
     for line in lines:
         if line.endswith("<EOR>") or line.endswith("<eor>"):
             add_record(line)
@@ -421,60 +478,6 @@ def main():
         else:
             logger.info("Emptied the source file " + inputfile)
     exit(exitcode)
-
-
-def enrich_record(record):
-    if xmlkey in ('', 'QRZ_COM_XMLKEY'):
-        logger.debug("XMLKEY not set; missing qrz.com username/password. Will *not* try to enrich QSO grid data.")
-    else:
-        # enriching the record data with some values,
-        # e.g. adding an at least 6 chars long locator
-
-        data = {}
-
-        # splitting fields
-        for x in record.split('<'):
-            if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
-                logger.debug("Ignoring field: " + x)
-            else:
-                # trying to split the line
-                key = ""
-                try:
-                    key = x.split(':')[0].upper()
-                except ValueError:
-                    logger.debug("Failed to extract key from \"" + x + "\"")
-
-                # ignoring keys with weird stuff in names
-                # the only permitted chars are "[A-Z0-9_]", thus "\w"
-                # So, if anything else is present - it can't be right, ignoring the key then
-                if re.match('[^\w]+', key):
-                    logger.debug("Ignoring key: " + key)
-                else:
-                    value = ((x.split('>')[1]).strip()).upper()
-                    data[key] = str(value)
-
-        if len(data['GRIDSQUARE']) <= 4:
-            if data['GRIDSQUARE'] == "":
-                data['GRIDSQUARE'] = "(not provided)"
-            logger.debug("Will try to enrich grid locator data for " + data['CALL'])
-            logger.debug("Grid locator from wsjtx_log.adi: " + data['GRIDSQUARE'])
-            fetch_callsign_data(data['CALL'])
-
-            new_locator = fetch_locator()
-            if len(new_locator) >= 6:
-                logger.info("Updating " + data['CALL'] + " locator from " + data['GRIDSQUARE'] + " to " + new_locator)
-                data['GRIDSQUARE'] = new_locator
-                logger.debug("Old record: " + record)
-                # constructing back the ADIF record since data was modified
-                record = ""
-                for element in data:
-                    record += "<" + element.lower() + ":" + str(len(data[element])) + ">" + str(data[element]) + " "
-                record += " <eor>"
-                logger.debug("New record: " + record)
-            else:
-                logger.info("No precise locator data found; leaving record untouched")
-
-    return record
 
 
 ########################################
