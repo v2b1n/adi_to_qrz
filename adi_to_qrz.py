@@ -43,9 +43,9 @@ apiurl = "https://logbook.qrz.com/api"
 logfile = os.path.basename(__file__).split(".")[0] + ".log"
 inputfile = "wsjtx_log.adi"
 failed_records = []
-delete = False
-idle_log = False
-debug = False
+delete_flag = False
+write_idle_log = False
+debug_flag = False
 exitcode = 0
 
 def get_xml_session_key():
@@ -73,17 +73,17 @@ def get_xml_session_key():
 
             try:
                 r = requests.post(xmlurl, data = payload)
-            except Exception as c:
+            except Exception:
                 logger.error("Could not connect to "+ xmlurl)
                 exit(1)
             else:
-                if ( r.status_code == 200 ):
+                if r.status_code == 200:
                     doc = xmltodict.parse(r.text)
 
                     if 'Error' in doc['QRZDatabase']['Session']:
-                        if (doc['QRZDatabase']['Session']['Error'] == "Session Timeout"):
+                        if doc['QRZDatabase']['Session']['Error'] == "Session Timeout":
                             logger.info("Cached key is expired")
-                        elif (doc['QRZDatabase']['Session']['Error'] == "Invalid session key"):
+                        elif doc['QRZDatabase']['Session']['Error'] == "Invalid session key":
                             logger.info("Cached key is no more valid")
                         else:
                             logger.error("An error occured when validating cached key: "+ doc['QRZDatabase']['Session']['Error'])
@@ -105,11 +105,11 @@ def get_xml_session_key():
 
         try:
             r = requests.post(xmlurl, data = payload)
-        except Exception as c:
+        except Exception:
             logger.error("Could not connect to "+ xmlurl)
             exit(1)
         else:
-            if ( r.status_code == 200 ):
+            if r.status_code == 200:
                 doc = xmltodict.parse(r.text)
 
                 if 'Error' in doc['QRZDatabase']['Session']:
@@ -131,7 +131,7 @@ def get_xml_session_key():
                         try:
                             f = open(session_key_cache, "w")
                             f.write(xmlkey)
-                            f.close();
+                            f.close()
                             logger.debug("Written session key into " + session_key_cache)
                         except Exception as e:
                             logger.error("Could not write session key cache file "+session_key_cache)
@@ -146,15 +146,15 @@ def fetch_callsign_data(call):
 
     logger.debug("Fetching callsign data for "+ call)
 
-    payload = {'s': xmlkey, 'callsign': call }
+    payload = dict(s=xmlkey, callsign=call)
 
     try:
         r = requests.post(xmlurl, data = payload)
-    except Exception as c:
+    except Exception:
         logger.error("Could not connect to "+ xmlurl)
         exit(1)
     else:
-        if ( r.status_code == 200 ):
+        if r.status_code == 200:
             doc = xmltodict.parse(r.text)
 
             if 'Error' in doc['QRZDatabase']['Session']:
@@ -166,18 +166,16 @@ def fetch_callsign_data(call):
                     logger.debug(r.text)
                     exit(1)
             else:
-                # if no 'Callsign' in the answer for any reason
-                if 'Callsign' not in doc['QRZDatabase']:
+                if 'Callsign' in doc['QRZDatabase']:
+                    # success, userdata is present and readable
+                    userdata = {}
+                    userdata = doc['QRZDatabase']['Callsign']
+                else:
+                    # if no 'Callsign' in the answer for any reason
                     logger.error("Could not find userdata in xml-response body:")
                     logger.debug(r.headers)
                     logger.debug(r.text)
                     exit(1)
-                else:
-                    # success, userdata is present and readable
-                    userdata = {}
-                    userdata = doc['QRZDatabase']['Callsign']
-
-
 
 
 def fetch_locator():
@@ -213,7 +211,7 @@ def add_record(record):
         # filtering out weird stuff in fields when looking for a "call"
         x = re.sub('[^\w\s:<>\-]+', '', x)
         if x == "" or x.startswith("eor>") or x.startswith("EOR>"):
-            next
+            continue
         else:
             key = x.split(':')[0].lower()
             value = x.split('>')[1]
@@ -222,11 +220,11 @@ def add_record(record):
 
     try:
         r = requests.post(apiurl, data = payload)
-    except Exception as c:
+    except Exception:
         logger.error("Could not connect to "+ apiurl)
         exit(1)
     else:
-        if ( r.status_code == 200 ):
+        if r.status_code == 200:
             params = dict(x.split('=') for x in r.text.split('&'))
 
 
@@ -282,12 +280,12 @@ def print_help():
     exit(0)
 
 def main():
-    global logfile,debug,exitcode
+    global logfile,debug_flag,exitcode
     global apikey,apiurl
     global xmlkey,xml_username,xml_password,xml_lookups
     global inputfile
-    global delete
-    global idle_log
+    global delete_flag
+    global write_idle_log
 
     if 'APIKEY' in os.environ:
         apikey = os.environ['APIKEY']
@@ -316,17 +314,17 @@ def main():
         elif opt in ('-p', '--password'):
             xml_password = arg
         elif opt in ('-d', '--delete'):
-            delete = True
+            delete_flag = True
         elif opt in ('-e', '--enable-idle-log'):
-            idle_log = True
+            write_idle_log = True
         elif opt in ('--debug'):
-            debug = True
+            debug_flag = True
         elif opt in ('-h', '--help'):
             print_help()
-        elif opt in ('-i', '--inputfile'):
+        elif opt in ['-i', '--inputfile']:
             inputfile = arg
 
-    if ( debug == True):
+    if debug_flag:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
@@ -338,7 +336,7 @@ def main():
         exit(2)
 
     # if xml_lookups are requested, username and password must be provided
-    if xml_lookups == True:
+    if xml_lookups:
         if xml_username in ('', 'QRZ_COM_USERNAME'):
             logger.error("Username for qrz.com not specified. Please use either \"-u\" key or set environment variable \"QRZ_COM_USERNAME\".")
             exit(2)
@@ -359,11 +357,11 @@ def main():
         file_handler.setFormatter(formatter)
         logging.getLogger().addHandler(file_handler)
 
-    with open(inputfile) as f:
+    with open(inputfile):
         lines = [line.rstrip('\n') for line in open(inputfile)]
 
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
-        if idle_log == True:
+        if write_idle_log:
             logger.info("The source file " + inputfile + " is empty; doing nothing")
         else:
             logger.handlers = []
@@ -384,19 +382,20 @@ def main():
             f.write("ADIF Export<eoh>\n")
             for failed in failed_records:
                 f.write(failed + "\n")
-            f.close();
+            f.close()
         except Exception as e:
             logger.error("Could not write failed records into " + failed_records_file)
             logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
-            if delete == True:
-                logger.warn("Will *not* empty " + inputfile + " due to error above")
+            if delete_flag:
+                logger.warning("Will *not* empty " + inputfile + " due to error above")
             # and exit NOW, do NOT empty the source file
             exit(1)
         else:
             logger.info("Written " + str(len(failed_records)) + " failed records into file " + failed_records_file)
 
-    # if succeeded writing down failed records (not exited with (1) above) - empty the source file, if "-d" flag was provided
-    if delete == True:
+    # if succeeded writing down failed records (not exited with (1) above) - empty the source file,
+    # if "-d" flag was provided
+    if delete_flag:
         try:
             f = open(inputfile, "w")
             f.write("ADIF Export<eoh>\n")
@@ -426,6 +425,7 @@ def enrich_record(record):
                 logger.debug("Ignoring field: " + x)
             else:
                 # trying to split the line
+                key = ""
                 try:
                     key = x.split(':')[0].upper()
                 except:
@@ -448,7 +448,7 @@ def enrich_record(record):
             fetch_callsign_data(data['CALL'])
 
             new_locator = fetch_locator()
-            if (len(new_locator) >= 6):
+            if len(new_locator) >= 6:
                 logger.info("Updating "+data['CALL']+" locator from "+data['GRIDSQUARE']+" to "+new_locator)
                 data['GRIDSQUARE'] = new_locator
                 logger.debug("Old record: "+record)
