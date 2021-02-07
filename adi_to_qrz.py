@@ -337,20 +337,26 @@ def main():
     # now check whether everything needed is given - at least apikey & inputfile
     # must be present
     if apikey in ('', 'QRZ_COM_APIKEY'):
+        print("")
         logger.error(
             "API key for qrz.com not specified. Please use either \"-a\" key or set environment variable \"APIKEY\".")
+        print_help()
         exit(2)
 
     # if xml_lookups are requested, username and password must be provided
     if xml_lookups:
         if xml_username in ('', 'QRZ_COM_USERNAME'):
+            print("")
             logger.error(
                 "Username for qrz.com not specified. Please use either \"-u\" key or set environment variable \"QRZ_COM_USERNAME\".")
+            print_help()
             exit(2)
 
         if xml_password in ('', 'QRZ_COM_PASSWORD'):
+            print("")
             logger.error(
                 "Password for qrz.com not specified. Please use either \"-p\" key or set environment variable \"QRZ_COM_PASSWORD\".")
+            print_help()
             exit(2)
 
         get_xml_session_key()
