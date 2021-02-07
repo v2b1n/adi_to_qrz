@@ -9,18 +9,15 @@ program_name = "adi_to_qrz"
 program_version = "0.5"
 program_url = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
-import io
+import datetime
+import getopt
 import logging
 import os
 import re
-# https://2.python-requests.org//de/latest/user/quickstart.html
-import requests
 import sys
-import time
-import datetime
-import getopt
+
+import requests
 import xmltodict
-import logging
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
