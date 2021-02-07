@@ -1,0 +1,9 @@
+[flake8]
+# E501 line length
+# E303 too many blank lines
+# C901 too complex
+# W605 invalid escape sequence
+ignore = E501,E303,C901,W605
+
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
+max-complexity = 10
