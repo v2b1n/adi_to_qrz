@@ -1,4 +1,8 @@
 .idea
 .session_key
 .env
-wsjtx_log.adi
+*.adi
+*.log
+*~
+*.bak
+*.log
