@@ -12,12 +12,13 @@ import logging
 import os
 import re
 import sys
+from hashlib import sha1
 
 import requests
 import xmltodict
 
 program_name = "adi_to_qrz"
-program_version = "0.5"
+program_version = "0.6"
 program_url = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -41,7 +42,10 @@ apikey = "QRZ_COM_APIKEY"
 apiurl = "https://logbook.qrz.com/api"
 logfile = os.path.basename(__file__).split(".")[0] + ".log"
 inputfile = "wsjtx_log.adi"
+record_cache = "record_cache.txt"
 failed_records = []
+ignored_records = 0
+added_records = 0
 delete_flag = False
 write_idle_log = False
 debug_flag = False
@@ -195,8 +199,8 @@ def add_record(record):
     global exitcode
 
     # filtering of the record in general is not done for simple reason:
-    # - comment/info/nameit fields *may* contain language-specific chars
-    # trying to catch all the possibilities is not really usefull.
+    # - comment/info/<nameit> fields *may* contain language-specific chars
+    # trying to catch all the possibilities is not really useful.
     # It's up to users program to properly log records.
     # So will pass the stuff 1:1 to qrz.com.
 
@@ -232,6 +236,7 @@ def add_record(record):
             if 'RESULT' in params:
                 if params['RESULT'] == "OK":
                     logger.info("QSO record with " + call + " added")
+                    add_record_to_cache(record)
                 else:
                     failed_records.append(record)
                     if 'REASON' in params:
@@ -256,10 +261,60 @@ def add_record(record):
                     logger.error("Insert of QSO with " + call + " failed")
                     logger.error("Server response was: \"" + reason + "\"")
                     logger.debug("Failed record: " + record)
+                    if "duplicate" in reason:
+                        if delete_flag is False:
+                            logger.info(
+                                "Since servers complain was \"duplicate\" - i assume the record is added to QRZ, so, adding that record to local cache too")
+                            add_record_to_cache(record)
                     exitcode = 1
         else:
             logger.error(
                 "The server responded with http-code " + str(r.status_code) + " upon submission of QSO with " + call)
+            exit(1)
+
+
+def find_cached_record(record):
+    global ignored_records
+
+    logger.debug("Looking for record in cache: " + str(record))
+    record_hash = sha1(record.encode('utf-8')).hexdigest()
+
+    try:
+        with open(record_cache, 'r') as f:
+            # Read all lines in the file one by one
+            for line in f:
+                # For each line, check if line contains the string
+                if record_hash in line:
+                    logger.debug("Hash entry " + record_hash + " for record \"" + record + "\" found in cache")
+                    logger.debug("Will not try to add that entry to logbook")
+                    ignored_records = ignored_records + 1
+                    return True
+    except IOError:
+        logger.debug("Record cache file does not exist")
+        return False
+    f.close()
+    return False
+
+
+def add_record_to_cache(record):
+    global delete_flag
+    global added_records
+
+    if delete_flag:
+        logger.debug("Delete-flag is active - will not add the entry to cache")
+        # but increase the counter for stats anyway
+        added_records = added_records + 1
+    else:
+        logger.debug("Adding record to cache: " + str(record))
+        record_hash = sha1(record.encode('utf-8')).hexdigest()
+        try:
+            f = open(record_cache, "a")
+            f.write(record_hash + ":" + record + os.linesep)
+            f.close()
+            added_records = added_records + 1
+        except Exception as e:
+            logger.error("Could not write into record_cache cache file " + record_cache)
+            logger.error("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit(1)
 
 
@@ -433,17 +488,19 @@ def main():
     # if the inputfile containes only the header, then there's nothing to do..
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
         if write_idle_log:
-            logger.info("The source file " + inputfile + " is empty; doing nothing")
+            logger.info("The source file " + inputfile + " is empty; nothing to do")
         else:
             logger.handlers = []
             logger.addHandler(stdout_handler)
-            logger.info("The source file " + inputfile + " is empty; doing nothing")
+            logger.info("The source file " + inputfile + " is empty; nothing to do")
         exit(0)
 
     # if it does contains entries - per record - add
     for line in lines:
         if line.endswith("<EOR>") or line.endswith("<eor>"):
-            add_record(line)
+            # check local records cache and if the record is not present in it - add the record
+            if not find_cached_record(line):
+                add_record(line)
 
     # now, if there are any failed records - write them into a separate file
     if len(failed_records) > 0:
@@ -477,6 +534,28 @@ def main():
             exit(1)
         else:
             logger.info("Emptied the source file " + inputfile)
+
+    stats = "Run statistics: "
+    name_plural = "records"
+    name_singular = "record"
+    if added_records > 0:
+        r = name_plural
+        if added_records == 1:
+            r = name_singular
+        stats = stats + str(added_records) + " new " + r + " added. "
+    if ignored_records > 0:
+        r = name_plural
+        if ignored_records == 1:
+            r = name_singular
+        stats = stats + str(ignored_records) + " cached " + r + " ignored. "
+    if len(failed_records) > 0:
+        r = name_plural
+        if len(failed_records) == 1:
+            r = name_singular
+        stats = stats + str(len(failed_records)) + " " + r + " failed."
+
+    if added_records > 0 or len(failed_records) > 0:
+        logger.info(stats)
     exit(exitcode)
 
 
