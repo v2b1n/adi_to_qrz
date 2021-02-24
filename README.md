@@ -7,7 +7,7 @@ This python script uploads your ADI-logfile to qrz.com logbook. Please see "Feat
 * uploads ADI-logfile entries to qrz.com logbook
 * keeps track of added records using a local cache
 * fetches remote party's grid locator data from qrz.com
-  * if desired, can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference in distance calculation.
+  * if desired, can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in a logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference in distance calculation.
 * keeps erroneous/non-imported QSOs and writes them into a separate file, see FAQ
 * empties the ADI-logfile if told to do so
 
@@ -16,12 +16,12 @@ My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i not
 This script fixes it - being triggered every couple of minutes by cron, it grabs the "wsjtx_log.adi" and the uploads the QSO-records.
 
 ## qrz.com account requirements
-Please keep in mind, that to be able to upload logs automatically you need a valid qrz.com account **and have a valid subcription**. It is needed needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups. The "XML Logbook Data Subscription" is sufficient.
+Please keep in mind, that to be able to upload logs automatically you need a valid qrz.com account **and have a valid subscription**. It is needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups. The "XML Logbook Data Subscription" is sufficient.
 
 ## System requirements & installation instructions
 
 ### API-key
-To authenticate agains qrz.com an api-key for the your logbook, where the QSOs will be imported, is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will get the answer how to find the api-key.
+To authenticate against qrz.com an api-key for your logbook, where the QSOs will be imported, is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will get the answer how to find the api-key.
 
 
 ### For Linux users
@@ -60,9 +60,9 @@ pi@raspberrypi:~ $
 
 1. Grab the latest python 3.X release from https://www.python.org/downloads/windows/ and install it. When installing, tick the "Add Python 3.X to PATH" checkbox.
 
-2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install install requests xmltodict dateutils``` in the windows terminal.
+2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install install requests xmltodict dateutils``` in the Windows terminal.
 
-3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WJCT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your username*)
+3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WSJT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your username*)
 
 4. Add a scheduled task that enter the WSJT-X directory and trigger "adi_to_qrz.py" every X minutes. (How? Please google for "How to create an automated task using Task Scheduler on Windows").
 
@@ -127,7 +127,7 @@ All ADI-log-records rejected by QRZ-server are stored into a file that is named 
   * A: By default - no, the script will NOT empty the file you specified for import. If you specify a key "-d" - yes, it will.
 
 
-* Q: _If i specify "-d" flag so my ADI logfile is emptied - what happens to the erroneous/non-imported QSO-records? 
+* Q: _If I specify the "-d" flag so that my ADI logfile is getting emptied - what happens to the erroneous/non-imported QSO-records? 
   * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is "YYYMMDD_HHmm_failed_records.adi", where YYYYMMDD_HHmm is the current date and time.
 
 
@@ -143,18 +143,18 @@ The error
 
 > Server response was:"Unable to add QSO to database: duplicate"
 
-is pretty self explanatory. It means that the logbook where you trying to import the qso entry into, already has such an entry. Either you delete the QRZ-entry in the logbook or the QSO-entry line in the logfile.
+is pretty self-explanatory. It means that the logbook where you are trying to import the qso record into, has already such a record. Either you find and delete the QSO-entry from your QRZ.com logbook, or the appropriate record-line from the logfile.
 
 
 ## ADI Log mandatory fields
 
-If the import fails and you spot an error
+If the import fails, and you spot an error
 
 > Server response was:"QRZ Internal Error: Unable to add QSO to database."
 
 check first whether the mandatory fields are presend in your ADIF-log.
 
-The api of logbook.qrz.com requires that an ADIF qso record has at least following mandatory fields:
+The api of logbook.qrz.com requires that an ADIF QSO-record has at least following mandatory fields:
 
 ```
 STATION_CALLSIGN or OPERATOR
@@ -169,7 +169,7 @@ In most cases the server responses with a more or less self-explanatory message 
 
 > Server response was:"QRZ Internal Error: Unable to add QSO to database. add_qso: outside date range"
 
-E.g "add_qso: outside date range" means that the the QSO does not "fit" into logbook's date-range (which is specified when creating the logbook)
+E.g "add_qso: outside date range" means that the QSO does not "fit" into your logbook's date-range (which is specified when creating the logbook)
 
 ## "Things still does not work as expected!"
 
@@ -177,7 +177,7 @@ Please run the program with the "--debug" flag. In most cases the error message 
 
 ## "Can't figure out what the error is! Please help!"
 
-If you still cannot handle the problems or the run of the program show  some python code errors - feel free to open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new, describe the problem and
+If you still cannot handle the problem, or the run of the program show some python code errors - feel free to open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new, describe the problem and
 provide
 * the adi-logfile that makes troubles
 * the log from the "--debug" program run
@@ -191,4 +191,4 @@ provide
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
 * qrz.com REST API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
 * qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html
-* lotw developer information https://lotw.arrl.org/lotw-help/developer-information/
+* LOTW developer information https://lotw.arrl.org/lotw-help/developer-information/

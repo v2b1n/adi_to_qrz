@@ -14,7 +14,7 @@ Caching is now a default behaviour when "delete" flag is not in use (which is al
 * Added xml lookups ability via xml-interface of qrz.com.
 While WSJT-X provides only 4 chars of the grid locator, on 2m the precision of 4 chars long locator and 6 chars long
 is quite a difference. The new functionality fetches provided grid locator data - if available - for the given callsign
-and enriches the QSO data bevore saving in qrz.com's logbook.
+and enriches the QSO data before saving in qrz.com's logbook.
 
 ## v0.3
 * the "idle" message, thus message when an empty log is processed, is now not written into logfile by default.
