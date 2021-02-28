@@ -72,10 +72,10 @@ def get_xml_session_key():
         with open(session_key_cache) as file:
             XMLKEY = file.read()
             XMLKEY = XMLKEY.strip()
-            LOGGER.debug("Cache file exists, cached key %s", str(XMLKEY))
+            LOGGER.debug("Session file exists, cached session key %s", str(XMLKEY))
 
             # validate by doing a dxcc fetch for entity 291 (USA)
-            LOGGER.debug("Validating xmlkey")
+            LOGGER.debug("Validating session key")
 
             payload = {'s': XMLKEY, 'dxcc': "291"}
 
@@ -90,12 +90,12 @@ def get_xml_session_key():
 
                     if 'Error' in doc['QRZDatabase']['Session']:
                         if doc['QRZDatabase']['Session']['Error'] == "Session Timeout":
-                            LOGGER.info("Cached key is expired")
+                            LOGGER.info("Session  is expired")
                         elif doc['QRZDatabase']['Session']['Error'] == "Invalid session key":
-                            LOGGER.info("Cached key is no more valid")
+                            LOGGER.info("Session key is no more valid")
                         else:
                             LOGGER.error(
-                                "An error occured when validating cached key: %s", doc['QRZDatabase']['Session'][
+                                "An error occured when validating session key: %s", doc['QRZDatabase']['Session'][
                                     'Error'])
 
                         XMLKEY = ""
@@ -104,12 +104,12 @@ def get_xml_session_key():
 
 
     except IOError:
-        LOGGER.debug("Cache file does not exist")
+        LOGGER.debug("Session file does not exist")
         XMLKEY = ""
 
     # if still empty - then it has to be retrieved & saved
     if XMLKEY == "":
-        LOGGER.debug("Getting a new xmlkey")
+        LOGGER.debug("Getting a new session key")
 
         payload = {'username': XML_USERNAME, 'password': XML_PASSWORD, 'agent': PROGRAM_NAME + "/" + PROGRAM_VERSION}
 
@@ -208,7 +208,7 @@ def add_record(record):
     # trying to catch all the possibilities is not really useful.
     # It's up to users program to properly log records.
     # So will pass the stuff 1:1 to qrz.com.
-
+    original_record = record
     record = enrich_record(record)
 
     LOGGER.debug("Will try to add record \"%s\"", record)
@@ -242,7 +242,7 @@ def add_record(record):
                 if params['RESULT'] == "OK":
                     LOGGER.info("QSO record with %s added", call)
                     ADDED_RECORDS = ADDED_RECORDS + 1
-                    add_record_to_cache(record)
+                    add_record_to_cache(original_record)
                 else:
                     FAILED_RECORDS.append(record)
                     if 'REASON' in params:
@@ -271,7 +271,7 @@ def add_record(record):
                         if DELETE_FLAG is False:
                             LOGGER.info(
                                 "Since servers complain was \"duplicate\" - i assume the record is added to QRZ, so, adding that record to local cache too")
-                            add_record_to_cache(record)
+                            add_record_to_cache(original_record)
                     EXITCODE = 1
         else:
             LOGGER.error(
