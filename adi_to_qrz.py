@@ -45,10 +45,11 @@ APIURL = "https://logbook.qrz.com/api"
 LOGFILE = os.path.basename(__file__).split(".")[0] + ".log"
 INPUTFILE = "wsjtx_log.adi"
 RECORD_CACHE = "record_cache.txt"
+PROCESSED_RECORDS = 0
+CACHED_RECORDS = 0
 FAILED_RECORDS = []
 IGNORED_RECORDS = 0
 ADDED_RECORDS = 0
-CACHED_RECORDS = 0
 DELETE_FLAG = False
 WRITE_IDLE_LOG = False
 DEBUG_FLAG = False
@@ -308,8 +309,6 @@ def add_record_to_cache(record):
 
     if DELETE_FLAG:
         LOGGER.debug("Delete-flag is active - will not add the entry to cache")
-        # but increase the counter for stats anyway
-        CACHED_RECORDS = CACHED_RECORDS + 1
     else:
         LOGGER.debug("Adding record to cache: %s", str(record))
         record_hash = sha1(record.encode('utf-8')).hexdigest()
@@ -405,6 +404,7 @@ def main():
     global INPUTFILE
     global DELETE_FLAG
     global WRITE_IDLE_LOG
+    global PROCESSED_RECORDS
 
     # grab variables if present in environment
     if 'APIKEY' in os.environ:
@@ -507,6 +507,7 @@ def main():
             # check local records cache and if the record is not present in it - add the record
             if not find_cached_record(line):
                 add_record(line)
+            PROCESSED_RECORDS = PROCESSED_RECORDS + 1
 
     # now, if there are any failed records - write them into a separate file
     if len(FAILED_RECORDS) > 0:
@@ -541,7 +542,7 @@ def main():
         else:
             LOGGER.info("Emptied the source file %s", INPUTFILE)
 
-    stats = "Run statistics: "
+    stats = "Run statistics - " + str(PROCESSED_RECORDS) + " records processed: "
     name_plural = "records"
     name_singular = "record"
     if ADDED_RECORDS > 0:
@@ -549,11 +550,6 @@ def main():
         if ADDED_RECORDS == 1:
             records_name = name_singular
         stats = stats + str(ADDED_RECORDS) + " new " + records_name + " added. "
-    if CACHED_RECORDS > 0:
-        records_name = name_plural
-        if CACHED_RECORDS == 1:
-            records_name = name_singular
-        stats = stats + str(CACHED_RECORDS) + " " + records_name + " added to cache. "
     if IGNORED_RECORDS > 0:
         records_name = name_plural
         if IGNORED_RECORDS == 1:
