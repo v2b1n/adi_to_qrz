@@ -26,7 +26,7 @@ To authenticate against qrz.com an api-key for your logbook, where the QSOs will
 
 ### For Linux users
 
-Beside regular python installation, following python package is required:
+Beside regular python installation, following python packages are required:
 ```
 python-requests
 python-xmltodict
@@ -36,24 +36,29 @@ python-dateutil
 On a debian-based linux-distro a
 ```
 apt-get update
-apt-get -y install python-requests python-xmltodict python-dateutil
+apt-get -y install --no-install-recommends python-requests python-xmltodict python-dateutil
 ```
-will usually make things work. All other distros should try
 
+will usually make things work. All other distros should try
 ```
 python -m pip install requests xmltodict dateutils
 ```
 
-Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and create a cronjob like this:
+Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X"),
+add executable bit
+```
+chmod ugo+x adi_to_qrz.py
+```
+
+and create a cronjob like this:
 
 ```
 pi@raspberrypi:~ $ crontab -l
 
 MAILTO=""
 # trigger every 5 minutes
-*/5 * * * * cd ~/.local/share/WSJT-X && python adi_to_qrz.py -x -a "My_Api_Key_Here"
+*/5 * * * * cd ~/.local/share/WSJT-X && ./adi_to_qrz.py -x -a "My_Api_Key_Here"
 pi@raspberrypi:~ $
-
 ```
 
 ### For Windows users
@@ -103,32 +108,35 @@ Usage: adi_to_qrz.py [options]
      --debug            enable debugging output
 ```
 
-The only mandatory option is "-a" - sure, you have to provide a valid API-key for QRZ.com logbook-access.
+The only mandatory option is ```-a``` - sure, you have to provide a valid API-key for QRZ.com logbook-access.
 
-Beside of specifying the api-key as "-a" option you can also set it as environment variable "APIKEY".
+Beside of specifying the api-key as ```-a``` option you can also set it as environment variable ```APIKEY```.
 
-qrz.com username and password can be provided as options -u/--username && -p/--password or as environment variables: "QRZ_COM_USERNAME" and "QRZ_COM_PASSWORD".
+qrz.com username and password can be provided as options ```-u```/```--username``` and ```-p```/```--password``` or as environment variables ```QRZ_COM_USERNAME``` and ```QRZ_COM_PASSWORD```.
 
 All actions are logged into a logfile.
 
-To disable logfile writing entirely specify "-l null".
+To disable logfile writing entirely specify ```-l null```.
 
-All ADI-log-records rejected by QRZ-server are stored into a file that is named "YYYMMDD_HHmm_failed_records.adi", where YYYYMMDD_HHmm is the current date and time.
+All ADI-log-records rejected by QRZ-server are stored into a file that is named ```YYYMMDD_HHmm_failed_records.adi```, where```YYYYMMDD_HHmm``` is the current date and time.
 
+***Important notice:*** when you start the script for the very first time and if your wsjtx_log.adi is NOT empty, the program will attempt to add all the entries to your logbook. If, however, you already added these entries to QRZ.com then this very first run will result in (possibly many) errors ("Unable to add QSO to database: duplicate"). This is naturally expected, since adi_to_qrz has not yet built up a local-cache. 
+After this first run adi_to_qrz will add all the failed "duplicate" entries to the local cache and won't complain anymore
+in next runs.
 
 
 # FAQ
 
-* Q: _Will that script overwrite existing entries in the QRZ logbook? 
+* Q: Will that script overwrite existing entries in the QRZ logbook? 
   * A: No, the script will NOT overwrite your existing entries. It will only add NEW records.
 
 
-* Q: _Will that script empty/delete my ADI logfile after importing records into QRZ logbook ? 
-  * A: By default - no, the script will NOT empty the file you specified for import. If you specify a key "-d" - yes, it will.
+* Q: Will that script empty/delete my ADI logfile after importing records into QRZ logbook ? 
+  * A: By default - no, the script will NOT empty the file you specified for import. If you specify a key ```-d``` - yes, it will.
 
 
-* Q: _If I specify the "-d" flag so that my ADI logfile is getting emptied - what happens to the erroneous/non-imported QSO-records? 
-  * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is "YYYMMDD_HHmm_failed_records.adi", where YYYYMMDD_HHmm is the current date and time.
+* Q: If I specify the ```-d``` flag so that my ADI logfile is getting emptied - what happens to the erroneous/non-imported QSO-records? 
+  * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is ```YYYMMDD_HHmm_failed_records.adi```, where ```YYYYMMDD_HHmm``` is the current date and time.
 
 
 
