@@ -115,7 +115,7 @@ def get_xml_session_key():
         try:
             response = requests.post(XMLURL, data=payload)
         except Exception:
-            LOGGER.error("Could not connect to %s, %s", XMLURL)
+            LOGGER.error("Could not connect to %s", XMLURL)
             exit(1)
         else:
             if response.status_code == 200:
