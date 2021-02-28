@@ -1,0 +1,4 @@
+WSJT-X ADIF Export<eoh>
+<call:7>DL7TEST <gridsquare:4>JM19 <mode:3>FT8 <rst_sent:3>-17 <rst_rcvd:3>-08 <qso_date:8>20200719 <time_on:6>191800 <qso_date_off:8>20200719 <time_off:6>191905 <band:3>15m <freq:9>21.075500 <station_callsign:5>DM2VV <my_gridsquare:6>JO62RO <tx_pwr:3>100 <operator:5>DM2VV <eor>
+<call:7>DL7TEST <gridsquare:4>JP20 <mode:3>FT8 <rst_sent:3>-02 <rst_rcvd:3>+04 <qso_date:8>20200722 <time_on:6>141830 <qso_date_off:8>20200722 <time_off:6>141915 <band:3>10m <freq:9>28.075200 <station_callsign:5>DM2VV <my_gridsquare:6>JO62RO <tx_pwr:3>75 <operator:5>DM2VV <eor>
+<call:7>DL7TEST <gridsquare:4>KO51 <mode:3>FT4 <rst_sent:3>-06 <rst_rcvd:3>-09 <qso_date:8>20200722 <time_on:6>145700 <qso_date_off:8>20200722 <time_off:6>145815 <band:3>20m <freq:9>14.078200 <station_callsign:5>DM2VV <my_gridsquare:6>JO62RO <tx_pwr:3>50 <operator:5>DM2VV <eor>
