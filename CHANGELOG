@@ -1,3 +1,9 @@
+## v0.6
+* A local cache of QSO entries is built when adding records to logbook.
+The app will not retry to upload the cached entries then again and again stumbling upon QRZ.com's error messages
+about "duplicates".
+Caching is now a default behaviour when "delete" flag is not in use (which is also the default).
+
 ## v0.5
 * The app can now handle partially corrupted log lines
 * improved debug logging
@@ -6,10 +12,14 @@
 
 ## v0.4
 * Added xml lookups ability via xml-interface of qrz.com.
-While WSJT-X provides only 4 chars of the grid locator, on 2m the precision of 4 chars long locator and 6 chars long is quite a difference. The new functionality fetches provided grid locator data - if available - for the given callsign and enriches the QSO data bevore saving in qrz.com's logbook.
+While WSJT-X provides only 4 chars of the grid locator, on 2m the precision of 4 chars long locator and 6 chars long
+is quite a difference. The new functionality fetches provided grid locator data - if available - for the given callsign
+and enriches the QSO data before saving in qrz.com's logbook.
 
 ## v0.3
-* the "idle" message, thus message when an empty log is procesed, is now not written into logfile by default. This prevents the log to grow only because of these, not really interesting, log records. The new switch "-e" allows, however, to re-enable it, so on every run you can see whether the script was actually executed or not.
+* the "idle" message, thus message when an empty log is processed, is now not written into logfile by default.
+This prevents the log to grow only because of these, not really interesting, log records. The new switch "-e" allows,
+however, to re-enable it, so on every run you can see whether the script was actually executed or not.
 
 ## v0.2
 * ensured python3 compatibility
