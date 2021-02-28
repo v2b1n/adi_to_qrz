@@ -15,6 +15,9 @@ RUN export LANG=C; export DEBIAN_FRONTEND=noninteractive; \
   python-requests \
   python-xmltodict \
   python-dateutil \
+  python3-requests \
+  python3-xmltodict \
+  python3-dateutil \
   flake8 \
   pylint
 
