@@ -138,11 +138,6 @@ in next runs.
 * Q: If I specify the ```-d``` flag so that my ADI logfile is getting emptied - what happens to the erroneous/non-imported QSO-records? 
   * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is ```YYYMMDD_HHmm_failed_records.adi```, where ```YYYYMMDD_HHmm``` is the current date and time.
 
-
-
-
-
-
 # Troubleshooting
 
 ## Duplicates
@@ -192,7 +187,6 @@ provide
 * output of ```python -V```
 * the info which adi_to_qrz.py program version you are using
 
-
 # Links
 
 * WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
@@ -200,3 +194,13 @@ provide
 * qrz.com REST API PDF: http://files.qrz.com/static/qrz/The%20QRZ%20Logbook%20API.pdf
 * qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html
 * LOTW developer information https://lotw.arrl.org/lotw-help/developer-information/
+
+# Donations
+
+Like what i'm doing? Donations are welcome
+
+* Paypal [paypal.me/m4vr](paypal.me/m4vr)
+* Bitcoin bc1q33y4j9f0t7fw0dd7cawk2dekdp758hunjhxm8z
+* Litecoin MGa9NvzVGddAtJT39aa9wHRCYcL3nKXKok
+* Ethereum 0x5ebe3b361ba3aab064cb6882e10a3dcc96900ed5
+* Monero 46rogMzYmEWhE9MWn8wRAf5GgzgjziUwhYHC5LrtDfqfBm2KKKTxUvKNYv25uB4vTkSSgsw7Mix51eB3iHvvM5WgCbkmwqt
