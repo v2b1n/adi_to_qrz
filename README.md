@@ -65,7 +65,7 @@ pi@raspberrypi:~ $
 
 1. Grab the latest python 3.X release from https://www.python.org/downloads/windows/ and install it. When installing, tick the "Add Python 3.X to PATH" checkbox.
 
-2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install install requests xmltodict dateutils``` in the Windows terminal.
+2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install requests xmltodict dateutils``` in the Windows terminal.
 
 3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WSJT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your username*)
 
