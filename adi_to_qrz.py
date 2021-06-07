@@ -20,7 +20,7 @@ import requests
 import xmltodict
 
 PROGRAM_NAME = "adi_to_qrz"
-PROGRAM_VERSION = "0.6"
+PROGRAM_VERSION = "0.7"
 PROGRAM_URL = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -239,6 +239,7 @@ def add_record(record):
             params = dict(x.split('=') for x in response.text.split('&'))
 
             if 'RESULT' in params:
+
                 if params['RESULT'] == "OK":
                     LOGGER.info("QSO record with %s added", call)
                     ADDED_RECORDS = ADDED_RECORDS + 1
@@ -254,8 +255,10 @@ def add_record(record):
                     LOGGER.debug("Failed record: %s", record)
                     EXITCODE = 1
 
+
             if 'STATUS' in params:
-                if params['STATUS'] == "FAIL":
+
+                if params['STATUS'] == "FAIL" or params['STATUS'] == "AUTH":
                     FAILED_RECORDS.append(record)
                     if 'REASON' in params:
                         reason = params['REASON']
