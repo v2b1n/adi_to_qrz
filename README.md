@@ -67,7 +67,7 @@ pi@raspberrypi:~ $
 
 2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install requests xmltodict dateutils``` in the Windows terminal.
 
-3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WSJT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your username*)
+3. Grab the latest release of [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) and put it into your WSJT-X log directory (the default is ```C:\Users\$USERNAME\AppData\Local\WSJT-X```, *where* **$USERNAME** *is your Windows username*)
 
 4. Add a scheduled task that enter the WSJT-X directory and trigger "adi_to_qrz.py" every X minutes. (How? Please google for "How to create an automated task using Task Scheduler on Windows").
 
@@ -179,10 +179,10 @@ Please run the program with the "--debug" flag. In most cases the error message 
 
 If you still cannot handle the problem, or the run of the program show some python code errors - feel free to open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new, describe the problem and
 provide
+* output of ```python3 -V```
+* output of ```adi_to_qrz.py --version```
 * the adi-logfile that makes troubles
 * the log from the "--debug" program run
-* output of ```python -V```
-* the info which adi_to_qrz.py program version you are using
 
 # Links
 

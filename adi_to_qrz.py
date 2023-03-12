@@ -328,7 +328,7 @@ def add_record_to_cache(record):
 
 def print_help():
     print("")
-    print(PROGRAM_NAME + " " + PROGRAM_VERSION + " ( " + PROGRAM_URL + " )")
+    print(PROGRAM_NAME + " v" + PROGRAM_VERSION + " ( " + PROGRAM_URL + " )")
     print("")
     print("Usage: " + os.path.basename(__file__) + " [options]")
     print(" -h  --help              print this usage and exit")
@@ -342,6 +342,14 @@ def print_help():
     print(" -l  --logfile           setting logfile, default: " + os.path.basename(__file__).split(".")[0] + ".log")
     print(" -d  --delete            empty the inputfile after import, default: no")
     print("     --debug             enable debugging output")
+    print(" -v  --version           print program version and exit")
+    print("")
+    exit(0)
+
+
+def print_version():
+    print("")
+    print(PROGRAM_NAME + " v" + PROGRAM_VERSION + " ( " + PROGRAM_URL + " )")
     print("")
     exit(0)
 
@@ -421,9 +429,9 @@ def main():
 
     # grab opts
     options, rest = getopt.gnu_getopt(sys.argv[1:],
-                                      'l:a:hedi:xu:p:',
+                                      'l:a:hedi:xu:p:v',
                                       ['logfile=', 'apikey=', 'help', 'idle_log', 'delete', 'inputfile=',
-                                       'xmllookups', 'username=', 'password=', 'debug'])
+                                       'xmllookups', 'username=', 'password=', 'debug', 'version'])
 
     # check opts
     for opt, arg in options:
@@ -445,6 +453,8 @@ def main():
             DEBUG_FLAG = True
         elif opt in ('-h', '--help'):
             print_help()
+        elif opt in ('-v', '--version'):
+            print_version()
         elif opt in ('-i', '--inputfile'):
             INPUTFILE = arg
 

@@ -1,5 +1,5 @@
 ## 0.8
-* swithing to Debian bullseye (11.6) for builds & tests
+* switching to Debian bullseye (11.6) for builds & tests
 * removed python2 support, keeping only python3.X
 * corrected IOError exceptions handling
 * corrected various smaller typos
