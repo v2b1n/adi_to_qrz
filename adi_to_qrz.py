@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Author: Vladimir Vecgailis <vladimir@vovka.de>, DM2VV
 # https://www.vovka.de/v2b1n/adi_to_qrz/
@@ -20,7 +20,7 @@ import requests
 import xmltodict
 
 PROGRAM_NAME = "adi_to_qrz"
-PROGRAM_VERSION = "0.7"
+PROGRAM_VERSION = "0.8"
 PROGRAM_URL = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -143,7 +143,7 @@ def get_xml_session_key():
                             file.write(XMLKEY)
                             file.close()
                             LOGGER.debug("Written session key into %s", session_key_cache)
-                        except Exception as e:
+                        except IOError as e:
                             LOGGER.error("Could not write session key cache file %s", session_key_cache)
                             LOGGER.error("I/O error({0}): {1}".format(e.errno, e.strerror))
                             exit(1)
@@ -320,7 +320,7 @@ def add_record_to_cache(record):
             f.write(record_hash + ":" + record + os.linesep)
             f.close()
             CACHED_RECORDS = CACHED_RECORDS + 1
-        except Exception as e:
+        except IOError as e:
             LOGGER.error("Could not write into record_cache cache file %s", RECORD_CACHE)
             LOGGER.error("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit(1)
@@ -494,7 +494,7 @@ def main():
     with open(INPUTFILE):
         lines = [line.rstrip('\n') for line in open(INPUTFILE)]
 
-    # if the inputfile containes only the header, then there's nothing to do..
+    # if the inputfile contains only the header, then there's nothing to do
     if len(lines) < 1 or (len(lines) == 1 and lines[0].endswith("ADIF Export<eoh>")):
         if WRITE_IDLE_LOG:
             LOGGER.info("The source file %s is empty; nothing to do", INPUTFILE)
@@ -504,7 +504,7 @@ def main():
             LOGGER.info("The source file %s is empty; nothing to do", INPUTFILE)
         exit(0)
 
-    # if it does contains entries - per record - add
+    # if it does contain entries - per record - add
     for line in lines:
         if line.endswith("<EOR>") or line.endswith("<eor>"):
             # check local records cache and if the record is not present in it - add the record
@@ -521,7 +521,7 @@ def main():
             for failed in FAILED_RECORDS:
                 file.write(failed + "\n")
             file.close()
-        except Exception as e:
+        except IOError as e:
             LOGGER.error("Could not write failed records into %s", failed_records_file)
             LOGGER.error("I/O error({0}): {1}".format(e.errno, e.strerror))
             if DELETE_FLAG:
@@ -538,7 +538,7 @@ def main():
             file = open(INPUTFILE, "w")
             file.write("ADIF Export<eoh>\n")
             file.close()
-        except Exception as e2:
+        except IOError as e2:
             LOGGER.error("Could not empty %s", INPUTFILE)
             LOGGER.error("I/O error({0}): {1}".format(e2.errno, e2.strerror))
             exit(1)

@@ -13,7 +13,16 @@ build-nc:
 	docker tag $(PROJECT) $(PROJECT):latest
 
 test:
+	# run & test the code backed into the container
+	docker run -ti $(PROJECT):latest ".tests/run.sh"
+
+localtest:
+	# run tests on the localcode
 	docker run -v $(PWD):/app -ti $(PROJECT):latest ".tests/run.sh"
 
-run:
+shell:
+	docker run --entrypoint=/bin/bash -ti $(PROJECT):latest
+
+localshell:
+	# start a shell & bind the local dir as /app
 	docker run --entrypoint=/bin/bash -v $(PWD):/app -ti $(PROJECT):latest

@@ -28,20 +28,20 @@ To authenticate against qrz.com an api-key for your logbook, where the QSOs will
 
 Beside regular python installation, following python packages are required:
 ```
-python-requests
-python-xmltodict
-python-dateutil
+python3-requests
+python3-xmltodict
+python3-dateutil
 ```
 
 On a debian-based linux-distro a
 ```
 apt-get update
-apt-get -y install --no-install-recommends python-requests python-xmltodict python-dateutil
+apt-get -y install --no-install-recommends python3-requests python3-xmltodict python3-dateutil
 ```
 
 will usually make things work. All other distros should try
 ```
-python -m pip install requests xmltodict dateutils
+python3 -m pip install requests xmltodict dateutils
 ```
 
 Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X"),
@@ -160,14 +160,11 @@ check first whether the mandatory fields are presend in your ADIF-log.
 The api of logbook.qrz.com requires that an ADIF QSO-record has at least following mandatory fields:
 
 ```
-STATION_CALLSIGN or OPERATOR
 CALL
 QSO_DATE
 BAND
 MODE
 ```
-where *STATION_CALLSIGN* or *OPERATOR* **must** contain YOUR callsign
-
 In most cases the server responses with a more or less self-explanatory message like
 
 > Server response was:"QRZ Internal Error: Unable to add QSO to database. add_qso: outside date range"
