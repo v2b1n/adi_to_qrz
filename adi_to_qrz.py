@@ -149,7 +149,7 @@ def get_xml_session_key():
                             exit(1)
 
 
-def fetch_callsign_data(call):
+def fetch_callsign_data(call: str) -> None:
     global XMLKEY, XMLURL, USERDATA
 
     call = call.upper()
@@ -197,7 +197,7 @@ def fetch_locator():
         return ""
 
 
-def add_record(record):
+def add_record(record: str) -> None:
     global APIKEY, APIURL
     global USERDATA
     global EXITCODE
@@ -220,7 +220,7 @@ def add_record(record):
     # find CALL in record and set it for later use
     for chunk in record.split('<'):
         # filtering out weird stuff in fields when looking for a "call"
-        chunk = re.sub('[^\w\s:<>\-]+', '', chunk)
+        chunk = re.sub(r'[^\w\s:<>\-]+', '', chunk)
         if chunk == "" or chunk.startswith("eor>") or chunk.startswith("EOR>"):
             continue
         else:
@@ -236,6 +236,7 @@ def add_record(record):
         exit(1)
     else:
         if response.status_code == 200:
+            # noinspection PyTypeChecker
             params = dict(x.split('=') for x in response.text.split('&'))
 
             if 'RESULT' in params:
@@ -283,7 +284,7 @@ def add_record(record):
             exit(1)
 
 
-def find_cached_record(record):
+def find_cached_record(record: str) -> bool:
     global IGNORED_RECORDS
 
     LOGGER.debug("Looking for record in cache: %s", str(record))
@@ -306,7 +307,7 @@ def find_cached_record(record):
     return False
 
 
-def add_record_to_cache(record):
+def add_record_to_cache(record: str) -> None:
     global DELETE_FLAG
     global CACHED_RECORDS
 
@@ -354,7 +355,7 @@ def print_version():
     exit(0)
 
 
-def enrich_record(record):
+def enrich_record(record: str) -> str:
     if XMLKEY in ('', 'QRZ_COM_XMLKEY'):
         LOGGER.debug("XMLKEY not set; missing qrz.com username/password. Will *not* try to enrich QSO grid data.")
     else:
@@ -378,7 +379,7 @@ def enrich_record(record):
                 # ignoring keys with weird stuff in names
                 # the only permitted chars are "[A-Z0-9_]", thus "\w"
                 # So, if anything else is present - it can't be right, ignoring the key then
-                if re.match('[^\w]+', key):
+                if re.match(r'[^\w]+', key):
                     LOGGER.debug("Ignoring key: %s", key)
                 else:
                     value = ((entry.split('>')[1]).strip()).upper()
@@ -514,6 +515,7 @@ def main():
             LOGGER.info("The source file %s is empty; nothing to do", INPUTFILE)
         exit(0)
 
+    # TODO: add here the new method how to parse data.
     # if it does contain entries - per record - add
     for line in lines:
         if line.endswith("<EOR>") or line.endswith("<eor>"):
