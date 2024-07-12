@@ -1,0 +1,90 @@
+---
+
+stages:
+  - test
+  - build
+  - release
+  - notify
+
+variables:
+  DOCKER_IMAGE: docker:23
+  DOCKER_IN_DOCKER_IMAGE: docker:23-dind
+  # app specific
+  BUILD_MAJOR_VERSION: 1
+  BUILD_MINOR_VERSION: 0
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE
+  DOCKER_BRANCH_IMAGE_NAME: "$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG"
+  DOCKER_IMAGE_VERSION: ${BUILD_MAJOR_VERSION}.${BUILD_MINOR_VERSION}.${CI_PIPELINE_IID}
+  DOCKERFILE: Dockerfile
+
+  DOCKER_BUILD_PLATFORMS: "linux/amd64"
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_TLS_CERTDIR: ""
+
+# testing with current python-versions
+.python_docker_image: &python_docker_image
+  - python:3.10-slim-bookworm
+  - python:3.11-slim-bookworm
+  - python:3.12-slim-bookworm
+
+test:
+  stage: test
+  parallel:
+    matrix:
+      - PYTHON_DOCKER_IMAGE: *python_docker_image
+  image: $PYTHON_DOCKER_IMAGE
+  script:
+    - LANG=C pip install -r requirements.txt flake8 pylint
+    - .tests/run.sh
+
+#
+build:
+  stage: build
+  image: $DOCKER_IMAGE
+  services:
+    - $DOCKER_IN_DOCKER_IMAGE
+  variables:
+    PUSH_LATEST: "-t ${DOCKER_IMAGE_NAME}:latest"
+    DOCKERHUB_TAG: "-t v2b1n/$CI_PROJECT_NAME:$DOCKER_IMAGE_VERSION"
+    PUSH_LATEST_DOCKERHUB: "-t v2b1n/${CI_PROJECT_NAME}:latest"
+  tags:
+    - gitlab-org-docker
+  script:
+    - echo $CI_JOB_TOKEN | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
+    - if [ ! -z "$DOCKERHUB_TOKEN" ]; then echo "$DOCKERHUB_TOKEN" | docker login -u v2b1n --password-stdin; fi
+    - docker buildx create --name build-${CI_PROJECT_ID}-${CI_PIPELINE_IID}-${CI_JOB_ID} --platform "linux/amd64"
+    - docker buildx build . -f ${DOCKERFILE} --pull --platform ${DOCKER_BUILD_PLATFORMS} -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION} $PUSH_LATEST $DOCKERHUB_TAG $PUSH_LATEST_DOCKERHUB --provenance false --push --no-cache --progress=plain --build-arg CI_COMMIT_SHA=$CI_COMMIT_SHA --build-arg BUILD_VERSION=$DOCKER_IMAGE_VERSION ${DOCKER_BUILD_EXTRA_ARGS}
+
+  after_script:
+    - docker buildx rm build-${CI_PROJECT_ID}-${CI_PIPELINE_IID}-${CI_JOB_ID}
+
+  rules:
+    - if: $DOCKER_BUILD_DISABLED
+      when: never
+
+    # don't build for tags
+    - if: '$CI_COMMIT_TAG != null'
+      when: never
+
+    # Run on non-default branches
+    - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      variables:
+        DOCKER_IMAGE_NAME: $DOCKER_BRANCH_IMAGE_NAME
+        PUSH_LATEST: ""
+        DOCKERHUB_TAG: ""
+        PUSH_LATEST_DOCKERHUB: ""
+
+    # always run scheduled and manually triggered pipelines,
+    - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE =~ "/schedule|web/"'
+      variables:
+        DOCKER_IMAGE_NAME: $DOCKER_BRANCH_IMAGE_NAME
+        PUSH_LATEST: ""
+        DOCKERHUB_TAG: ""
+        PUSH_LATEST_DOCKERHUB: ""
+
+    # run on the default branch
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE =~ "/schedule|web/"'
+
+    # default
+    - when: on_success

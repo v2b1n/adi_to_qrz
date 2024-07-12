@@ -1,21 +1,11 @@
-FROM debian:bullseye-slim
-
-RUN echo "deb http://ftp.de.debian.org/debian bullseye main contrib non-free \n\
-deb http://ftp.de.debian.org/debian-security bullseye/updates main contrib non-free \n\
-deb http://ftp.de.debian.org/debian bullseye-proposed-updates main contrib non-free \n\
-deb http://ftp.de.debian.org/debian bullseye-updates main contrib non-free" > /etc/apt/sources.list
-
-RUN mkdir -p /usr/share/man/man1
-
-RUN export LANG=C; export DEBIAN_FRONTEND=noninteractive; \
-  apt-get update; apt-get -y install --no-install-recommends \
-  python3-requests \
-  python3-xmltodict \
-  python3-dateutil \
-  flake8 \
-  pylint
+FROM python:3.12-slim-bookworm
 
 ADD . /app
+
+RUN mkdir /data && LANG=C pip install -r /app/requirements.txt && chmod 755 /app/*.py
+
 ENV PATH=$PATH:/app
 
-WORKDIR /app
+WORKDIR /data
+
+ENTRYPOINT ["/app/adi_to_qrz.py" ]

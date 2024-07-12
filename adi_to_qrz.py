@@ -20,7 +20,7 @@ import requests
 import xmltodict
 
 PROGRAM_NAME = "adi_to_qrz"
-PROGRAM_VERSION = "0.8"
+PROGRAM_VERSION = "0.8.1"
 PROGRAM_URL = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)

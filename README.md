@@ -1,8 +1,34 @@
+## Table of Contents
+
+- [1. Features](#1-features)
+- [2. Why?](#2-why)
+- [3. Requirements](#3-requirements)
+  - [3.1 Supported python-versions](#31-supported-python-versions)
+  - [3.2 qrz.com subscription](#32-qrzcom-subscription)
+  - [3.3 API-key](#33-api-key)
+- [4. Installation instructions](#4-installation-instructions)
+  - [4.1 For Linux users](#41-for-linux-users)
+  - [4.2 Docker: prepared docker images for amd64](#42-docker-prepared-docker-images-for-amd64)
+  - [4.3 Docker: images for arm64: raspberry/Macbooks with M1/M2 CPUs](#43-docker-images-for-arm64-raspberrymacbooks-with-m1m2-cpus)
+  - [4.4 For Windows users](#44-for-windows-users)
+  - [4.5 For Mac OS users](#45-for-mac-os-users)
+- [5. Usage](#5-usage)
+- [6. FAQ](#6-faq)
+- [7. Troubleshooting](#7-troubleshooting)
+  - [7.1 Duplicates](#71-duplicates)
+  - [7.2 ADI Log mandatory fields](#72-adi-log-mandatory-fields)
+  - [7.3 "Things still does not work as expected!"](#73-things-still-does-not-work-as-expected)
+  - [7.4 "Can't figure out what the error is! Please help!"](#74-cant-figure-out-what-the-error-is-please-help)
+- [8. Links](#8-links)
+- [9. Donations](#9-donations)
+
+<TOC>
+
 # adi_to_qrz
 
 This python script uploads your ADI-logfile to qrz.com logbook. Please see "Features" for a full features list.
 
-## Features
+## 1. Features[](#features)
 
 * uploads ADI-logfile entries to qrz.com logbook
 * keeps track of added records using a local cache
@@ -11,20 +37,31 @@ This python script uploads your ADI-logfile to qrz.com logbook. Please see "Feat
 * keeps erroneous/non-imported QSOs and writes them into a separate file, see FAQ
 * empties the ADI-logfile if told to do so
 
-## Why?
-My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i noticed that the manual upload-procedure to qrz.com is rather boring.
+## 2. Why?
+My WSJT-X runs on a raspberry pi. After having used the WSJT-X for a while i noticed that the manual upload-procedure to qrz.com is really annoying.
 This script fixes it - being triggered every couple of minutes by cron, it grabs the "wsjtx_log.adi" and the uploads the QSO-records.
 
-## qrz.com account requirements
-Please keep in mind, that to be able to upload logs automatically you need a valid qrz.com account **and have a valid subscription**. It is needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups. The "XML Logbook Data Subscription" is sufficient.
+## 3. Requirements<a id='3.0'></a>
 
-## System requirements & installation instructions
+### 3.1 Supported python-versions
+The application is tested with following python builds:
 
-### API-key
+* python 3.10
+* python 3.11
+* python 3.12
+
+So make sure you have one installed for your OS.
+
+### 3.2 qrz.com subscription
+To be able to upload logs automatically you need a valid qrz.com account **and have a valid subscription**. It is needed to get the Logbook API key which is used for uploads via the API. The subscription is also needed for the xml-lookups. The "XML Logbook Data Subscription" is sufficient. 
+And, no, i'm not affiliated by qzr.com.
+
+### 3.3 API-key
 To authenticate against qrz.com an api-key for your logbook, where the QSOs will be imported, is needed. Right the first search result in https://www.google.de/search?q=qrz+logbook+api+key will lead you to QRZ.com forum where you will get the answer how to find the api-key.
 
 
-### For Linux users
+## 4. Installation instructions
+### 4.1 For Linux users
 
 Beside regular python installation, following python packages are required:
 ```
@@ -33,37 +70,90 @@ python3-xmltodict
 python3-dateutil
 ```
 
-On a debian-based linux-distro a
+On a debian-based linux-distro an
 ```
 apt-get update
 apt-get -y install --no-install-recommends python3-requests python3-xmltodict python3-dateutil
 ```
+will usually make things work.
 
-will usually make things work. All other distros should try
+Other distros should try
 ```
-python3 -m pip install requests xmltodict dateutils
+python3 -m pip install -r requirements.txt
 ```
 
-Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X"),
-add executable bit
+Then, put the [adi_to_qrz.py](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/adi_to_qrz.py?inline=false) into your WSJT-X log directory (by default  "~/.local/share/WSJT-X") and make it executable:
+
 ```
 chmod ugo+x adi_to_qrz.py
 ```
 
-and create a cronjob like this:
+Enter your WSJT-X log directory and create a ```.env``` file. It has to contain your apikey/qrz.com credentials and has to have following structure:
 
 ```
-pi@raspberrypi:~ $ crontab -l
+# your api-key, this is used to push the data
+APIKEY="1234-5678-9012"
+
+# The callsign and password are used for User-data-lookups
+# your qrz.com callsign
+QRZ_COM_USERNAME="AB1CD"
+# your qrz.com password
+QRZ_COM_PASSWORD="YourPassWord"
+```
+
+At last, create a cronjob using ```crontab -e``` command.
+
+One like this:
+
+```
+user@workstation:~ $ crontab -l
 
 MAILTO=""
 # trigger every 5 minutes
-*/5 * * * * cd ~/.local/share/WSJT-X && ./adi_to_qrz.py -x -a "My_Api_Key_Here"
-pi@raspberrypi:~ $
+*/5 * * * * cd ~/.local/share/WSJT-X && . .env && ./adi_to_qrz.py -x
 ```
 
-### For Windows users
+### 4.2 Docker: prepared docker images for amd64
 
-1. Grab the latest python 3.X release from https://www.python.org/downloads/windows/ and install it. When installing, tick the "Add Python 3.X to PATH" checkbox.
+Docker users can grab and run the pre-built docker-image.
+
+To run it -
+
+create the ```.env``` file as described in the general linux section above and run:
+
+```
+cd ~/.local/share/WSJT-X && docker run --env-file .env -v $(pwd)/:/data/ v2b1n/adi_to_qrz:latest -x
+```
+
+or run it via cronjob:
+
+```
+user@workstation:~ $ crontab -l
+
+MAILTO=""
+# trigger every 5 minutes
+*/5 * * * * cd ~/.local/share/WSJT-X && docker run --env-file .env -v $(pwd)/:/data/ v2b1n/adi_to_qrz:latest -x
+```
+
+One important notice: current builds are for amd64-architecture only, so dear raspberry/M1/M2-Macbook users - please refer to the next section.
+
+
+### 4.3 Docker: images for arm64: raspberry/Macbooks with M1/M2 CPUs
+
+As a docker-user you can grab and build the latest version on your own:
+
+```
+git clone https://gitlab.com/v2b1n/adi_to_qrz.git
+cd adi_to_qrz
+docker build . -t v2b1n/adi_to_qrz:latest
+```
+
+and then run it as described above in other sections - i.e. as a cronjob.
+
+
+### 4.4 For Windows users
+
+1. Grab the latest supported python release from https://www.python.org/downloads/windows/ and install it. When installing, tick the "Add Python 3.X to PATH" checkbox.
 
 2. Grab and launch the [install_prerequisites.cmd](https://gitlab.com/v2b1n/adi_to_qrz/-/raw/master/windows/install_prerequisites.cmd?inline=false) - this one will install the required python packages. You can also install them on your own by issuing ```python -m pip install requests xmltodict dateutils``` in the Windows terminal.
 
@@ -86,10 +176,10 @@ Important points when creating a task are:
       * ```C:\Users\$USERNAME\AppData\Local\WSJT-X\adi_to_qrz.py -a "your-api-key" -d -x```
     * Start in : ```C:\Users\$USERNAME\AppData\Local\WSJT-X```
 
-### For Mac OS users
+### 4.5 For Mac OS users
 (will follow; any contributions are welcome)
 
-## Usage
+## 5. Usage
 
 As the "help" sections shows, the usage is pretty straightforward
 
@@ -125,7 +215,7 @@ After this first run adi_to_qrz will add all the failed "duplicate" entries to t
 in next runs.
 
 
-# FAQ
+## 6. FAQ
 
 * Q: Will that script overwrite existing entries in the QRZ logbook? 
   * A: No, the script will NOT overwrite your existing entries. It will only add NEW records.
@@ -138,9 +228,9 @@ in next runs.
 * Q: If I specify the ```-d``` flag so that my ADI logfile is getting emptied - what happens to the erroneous/non-imported QSO-records? 
   * A: All failed records are written into a separate ADI-logfile in the same directory. The name of this new logfile is ```YYYMMDD_HHmm_failed_records.adi```, where ```YYYYMMDD_HHmm``` is the current date and time.
 
-# Troubleshooting
+## 7. Troubleshooting
 
-## Duplicates
+### 7.1 Duplicates
 
 The error
 
@@ -149,7 +239,7 @@ The error
 is pretty self-explanatory. It means that the logbook where you are trying to import the qso record into, has already such a record. Either you find and delete the QSO-entry from your QRZ.com logbook, or the appropriate record-line from the logfile.
 
 
-## ADI Log mandatory fields
+### 7.2 ADI Log mandatory fields
 
 If the import fails, and you spot an error
 
@@ -171,11 +261,11 @@ In most cases the server responses with a more or less self-explanatory message 
 
 E.g "add_qso: outside date range" means that the QSO does not "fit" into your logbook's date-range (which is specified when creating the logbook)
 
-## "Things still does not work as expected!"
+### 7.3 "Things still does not work as expected!"
 
 Please run the program with the "--debug" flag. In most cases the error message shows clearly what the actual problem is - either a broken log-file, or weird formatted entries/fields & you can possibly fix is on your own.
 
-## "Can't figure out what the error is! Please help!"
+### 7.4 "Can't figure out what the error is! Please help!"
 
 If you still cannot handle the problem, or the run of the program show some python code errors - feel free to open an issue at https://gitlab.com/v2b1n/adi_to_qrz/issues/new, describe the problem and
 provide
@@ -184,7 +274,7 @@ provide
 * the adi-logfile that makes troubles
 * the log from the "--debug" program run
 
-# Links
+## 8. Links
 
 * WSJT-X: https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
 * ADIF format specs: http://www.adif.org (v1/v2/v3)
@@ -192,7 +282,7 @@ provide
 * qrz.com xml interface specification https://www.qrz.com/XML/current_spec.html
 * LOTW developer information https://lotw.arrl.org/lotw-help/developer-information/
 
-# Donations
+## 9. Donations
 
 Like what i'm doing? Donations are welcome
 

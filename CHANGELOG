@@ -1,3 +1,11 @@
+## 0.8.1
+* adjusting re-syntax for python 3.12 compatibility
+* switching to Debian bookworm for builds & tests
+* Testing in docker using python 3.10, 3.11, 3.12
+* linting using flake8 & pylint
+* building docker image & uploading to hub.docker.com
+* reworked README.md
+
 ## 0.8
 * switching to Debian bullseye (11.6) for builds & tests
 * removed python2 support, keeping only python3.X
