@@ -26,11 +26,11 @@
 
 # adi_to_qrz
 
-This python script uploads your ADI-logfile to qrz.com logbook. Please see "Features" for a full features list.
+This python script uploads your WSJT-X ADI-logfile to qrz.com logbook. Please see "Features" for a full features list.
 
 ## 1. Features[](#features)
 
-* uploads ADI-logfile entries to qrz.com logbook
+* uploads WSJT-X ADI-logfile entries to qrz.com logbook
 * keeps track of added records using a local cache
 * fetches remote party's grid locator data from qrz.com
   * if desired, can fetch remote party's grid locator data from qrz.com's xml-interface and "enrich" the QSO data with it, before saving in a logbook; while WSJT-X provides only 4 chars of the grid locator, on 2m band the precision of 4 chars long locator vs 6 chars long does make quite a difference in distance calculation.
