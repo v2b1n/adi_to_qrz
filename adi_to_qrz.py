@@ -20,7 +20,7 @@ import requests
 import xmltodict
 
 PROGRAM_NAME = "adi_to_qrz"
-PROGRAM_VERSION = "0.8.1"
+PROGRAM_VERSION = "0.8.2"
 PROGRAM_URL = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -124,6 +124,9 @@ def get_xml_session_key():
 
                 if 'Error' in doc['QRZDatabase']['Session']:
                     LOGGER.error("Error: %s", doc['QRZDatabase']['Session']['Error'])
+                    LOGGER.debug(doc)
+                    LOGGER.debug(response.headers)
+                    LOGGER.debug(response.text)
                     exit(1)
                 else:
                     # if no 'Callsign' in the answer for any reason
@@ -327,6 +330,12 @@ def add_record_to_cache(record: str) -> None:
             exit(1)
 
 
+def strip_quotes(value):
+    if value.startswith('"') and value.endswith('"'):
+        return value[1:-1]
+    return value
+
+
 def print_help():
     print("")
     print(PROGRAM_NAME + " v" + PROGRAM_VERSION + " ( " + PROGRAM_URL + " )")
@@ -420,13 +429,13 @@ def main():
 
     # grab variables if present in environment
     if 'APIKEY' in os.environ:
-        APIKEY = os.environ['APIKEY']
+        APIKEY = strip_quotes(os.environ['APIKEY'])
 
     if 'QRZ_COM_USERNAME' in os.environ:
-        XML_USERNAME = os.environ['QRZ_COM_USERNAME']
+        XML_USERNAME = strip_quotes(os.environ['QRZ_COM_USERNAME'])
 
     if 'QRZ_COM_PASSWORD' in os.environ:
-        XML_PASSWORD = os.environ['QRZ_COM_PASSWORD']
+        XML_PASSWORD = strip_quotes(os.environ['QRZ_COM_PASSWORD'])
 
     # grab opts
     options, rest = getopt.gnu_getopt(sys.argv[1:],
