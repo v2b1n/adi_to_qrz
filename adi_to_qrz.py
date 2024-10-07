@@ -20,7 +20,7 @@ import requests
 import xmltodict
 
 PROGRAM_NAME = "adi_to_qrz"
-PROGRAM_VERSION = "0.8.2"
+PROGRAM_VERSION = "0.8.3"
 PROGRAM_URL = "https://www.vovka.de/v2b1n/adi_to_qrz/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -394,8 +394,8 @@ def enrich_record(record: str) -> str:
                     value = ((entry.split('>')[1]).strip()).upper()
                     data[key] = str(value)
 
-        if len(data['GRIDSQUARE']) <= 4:
-            if data['GRIDSQUARE'] == "":
+        if len(data.get('GRIDSQUARE', '')) <= 4:
+            if data.get('GRIDSQUARE', '') == "":
                 data['GRIDSQUARE'] = "(not provided)"
             LOGGER.debug("Will try to enrich grid locator data for %s", data['CALL'])
             LOGGER.debug("Grid locator from wsjtx_log.adi: %s", data['GRIDSQUARE'])
