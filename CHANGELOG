@@ -1,3 +1,6 @@
+## 0.8.3
+* Fixed KeyError for missing 'GRIDSQUARE' in logs
+
 ## 0.8.2
 * Correcting quotes values handling in .env
 * Updating Makefile for better local testing
